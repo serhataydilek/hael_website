@@ -58,7 +58,9 @@ function OpeningScreen({ pathname }: { pathname: string }) {
 
   return (
     <div className="opening-screen" data-phase={phase} aria-hidden="true" onAnimationEnd={(event) => event.currentTarget === event.target && phase === 'playing' && setPhase('done')}>
-      <div className="opening-mark"><strong>HAEL</strong></div>
+      <div className="opening-mark">
+        <span className="opening-logo-window"><Image src="/hael-logo-reference.png" alt="" width={1600} height={1125} priority /></span>
+      </div>
     </div>
   );
 }

@@ -32,14 +32,10 @@ export function SiteHeader({ variant = 'default' }: { variant?: 'default' | 'hom
 
   return (
     <header className="site-header" data-variant={variant} data-scrolled={scrolled} data-hidden={hidden}>
-      {variant === 'home' ? (
-        <Link className="wordmark" href="/" aria-label="HAEL home">HAEL</Link>
-      ) : (
-        <Link className="wordmark brand-lockup" href="/" aria-label="HAEL home">
-          <span className="hael-mark-crop" aria-hidden="true"><Image src="/hael-logo-reference.png" alt="" width={1600} height={1125} priority /></span>
-          <span>HAEL</span>
-        </Link>
-      )}
+      <Link className="wordmark brand-lockup" href="/" aria-label="HAEL home">
+        <span className="hael-mark-crop" aria-hidden="true"><Image src="/hael-logo-reference.png" alt="" width={1600} height={1125} priority /></span>
+        <span>HAEL</span>
+      </Link>
       <nav aria-label="Primary navigation">
         {variant === 'home' && <span className="home-secondary-nav"><Link href="/shop">Shop</Link><Link href="#collection">Collection</Link><Link href="#lookbook">Lookbook</Link></span>}
         {variant === 'default' && <Link href="/shop">Drop 001</Link>}
