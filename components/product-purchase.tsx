@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { DecodedText } from '@/components/decoded-text';
 import type { Product, Size } from '@/lib/products';
 import { useStorefront } from '@/components/storefront-experience';
 
@@ -26,7 +27,7 @@ export function ProductPurchase({ product, unavailableSizes = [] }: { product: P
 
   return (
     <div className="purchase-block">
-      <div className="size-heading"><span>SELECT SIZE</span><span>SIZE GUIDE ↗</span></div>
+      <div className="size-heading"><DecodedText text="SELECT SIZE" trigger="inView" duration={0.32} decodeId="select-size" /><span>SIZE GUIDE ↗</span></div>
       <fieldset className="size-grid" aria-label="Select size">
         {product.sizes.map((value) => {
           const unavailable = unavailableSizes.includes(value);

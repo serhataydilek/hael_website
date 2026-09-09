@@ -14,6 +14,7 @@ import {
 } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { DecodedText } from '@/components/decoded-text';
 import { addCartLine, readCart, writeCart, type CartLine } from '@/lib/cart';
 import { products, type Size } from '@/lib/products';
 
@@ -44,22 +45,29 @@ function OpeningScreen({ pathname }: { pathname: string }) {
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const shouldPlay = pathname === '/' && !sessionStorage.getItem('hael-opening-seen') && !reducedMotion;
       if (!shouldPlay) {
-        sessionStorage.setItem('hael-opening-seen', 'true');
         setPhase('done');
         return;
       }
-      sessionStorage.setItem('hael-opening-seen', 'true');
       setPhase('playing');
     };
     queueMicrotask(resolveOpening);
   }, [pathname]);
 
+  const finishOpening = () => {
+    try {
+      sessionStorage.setItem('hael-opening-seen', 'true');
+    } catch {
+      /* ignore */
+    }
+    setPhase('done');
+  };
+
   if (pathname !== '/' || phase === 'done') return null;
 
   return (
-    <div className="opening-screen" data-phase={phase} aria-hidden="true" onAnimationEnd={(event) => event.currentTarget === event.target && phase === 'playing' && setPhase('done')}>
+    <div className="opening-screen" data-phase={phase} aria-hidden="true" onAnimationEnd={(event) => event.currentTarget === event.target && phase === 'playing' && finishOpening()}>
       <div className="opening-mark">
-        <span className="opening-logo-window"><Image src="/hael-logo-reference.png" alt="" width={1600} height={1125} priority /></span>
+        <span className="opening-logo-window"><Image src="/hael-logo.jpg" alt="" width={819} height={1024} priority /></span>
       </div>
     </div>
   );
@@ -103,12 +111,18 @@ function CartDrawer({ lines, open, onClose, updateCart }: { lines: CartLine[]; o
       <button className="cart-backdrop" data-open={open} onClick={onClose} disabled={!open} aria-hidden={!open} aria-label="Close bag" tabIndex={-1} />
       <dialog className="cart-drawer" open aria-hidden={!open} aria-modal={open || undefined} aria-labelledby="cart-drawer-title" inert={!open} onKeyDown={trapFocus}>
         <header className="drawer-header">
-          <div><p>ACTIVE SELECTION</p><h2 id="cart-drawer-title">Bag <span key={count} className="animated-count">[{String(count).padStart(2, '0')}]</span></h2></div>
+          <div>
+            <DecodedText as="p" text="ACTIVE SELECTION" trigger="open" active={open} duration={0.32} decodeId="drawer-active" />
+            <h2 id="cart-drawer-title">
+              <DecodedText text="Bag" trigger="open" active={open} duration={0.36} delay={0.04} decodeId="drawer-bag" />{' '}
+              <span key={count} className="animated-count">[{String(count).padStart(2, '0')}]</span>
+            </h2>
+          </div>
           <button ref={closeRef} onClick={onClose} type="button">CLOSE <span aria-hidden="true">×</span></button>
         </header>
 
         <div className="drawer-lines" aria-live="polite">
-          {lines.length === 0 ? <div className="drawer-empty"><p>Your selection is empty.</p><Link href="/shop" onClick={onClose}>Enter collection →</Link></div> : lines.map((line, index) => {
+          {lines.length === 0 ? <div className="drawer-empty"><DecodedText as="p" text="Your selection is empty." trigger="open" active={open} duration={0.4} decodeId="drawer-empty" /><Link href="/shop" onClick={onClose}><DecodedText text="Enter collection →" trigger="open" active={open} duration={0.34} delay={0.06} hover accessible={false} decodeId="drawer-enter" /></Link></div> : lines.map((line, index) => {
             const product = products.find((item) => item.id === line.productId);
             if (!product) return null;
             const style = { '--line-index': index } as CSSProperties;
@@ -121,9 +135,11 @@ function CartDrawer({ lines, open, onClose, updateCart }: { lines: CartLine[]; o
         </div>
 
         <footer className="drawer-footer">
-          <div><span>SUBTOTAL</span><strong key={total} className="animated-subtotal">€{total}</strong></div>
+          <div><DecodedText text="SUBTOTAL" trigger="open" active={open} duration={0.3} decodeId="drawer-subtotal" /><strong key={total} className="animated-subtotal">€{total}</strong></div>
           <p>Taxes included. Delivery calculated later.</p>
-          <Link className="drawer-bag-link" href="/cart" onClick={onClose}>VIEW BAG <span aria-hidden="true">→</span></Link>
+          <Link className="drawer-bag-link" href="/cart" onClick={onClose} aria-label="View bag">
+            <DecodedText text="VIEW BAG" trigger="open" active={open} duration={0.34} hover accessible={false} decodeId="drawer-view" /> <span aria-hidden="true">→</span>
+          </Link>
         </footer>
       </dialog>
     </>

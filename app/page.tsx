@@ -1,31 +1,30 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import { CampaignHero } from '@/components/campaign-hero';
+import { DecodedText } from '@/components/decoded-text';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
+import { DECODE_DURATION } from '@/lib/text-decode';
 
 export default function Home() {
   return (
-    <main>
+    <main className="home-main">
       <SiteHeader variant="home" />
-      <section className="campaign-hero" aria-labelledby="campaign-title">
-        <h1 id="campaign-title" className="campaign-phrase" aria-label="dont blame us">
-          <span className="campaign-phrase-word campaign-phrase-dont">dont</span>
-          <span className="campaign-phrase-blame" aria-hidden="true">
-            <Image src="/blame-handwritten.png" alt="" width={1434} height={2334} priority />
-          </span>
-          <span className="campaign-phrase-word campaign-phrase-us">us</span>
-        </h1>
-        <figure className="campaign-image">
-          <Image src="/hael-campaign-01.png" alt="Model wearing HAEL's black graphic long-sleeve top in a dark studio" fill priority sizes="100vw" />
-        </figure>
-        <p className="campaign-control campaign-collection">Collection / 001</p>
-        <Link className="campaign-control campaign-enter campaign-shop-now" href="/shop">Shop now <span aria-hidden="true">↗</span></Link>
-      </section>
+      <CampaignHero />
 
       <section className="manifesto page-shell" aria-label="HAEL field notes">
-        <p className="eyebrow">HAEL / FIELD NOTES</p>
-        <p>Built from abrasion, repetition, and the trace a body leaves behind. The graphic is not decoration. It is the evidence.</p>
-        <Link className="text-link" href="/shop">View the complete drop <span aria-hidden="true">→</span></Link>
+        <DecodedText className="eyebrow" as="p" text="HAEL / FIELD NOTES" trigger="inView" duration={DECODE_DURATION.label} decodeId="home-field-notes" />
+        <DecodedText
+          className="manifesto-copy"
+          as="p"
+          text="Built from abrasion, repetition, and the trace a body leaves behind. The graphic is not decoration. It is the evidence."
+          trigger="inView"
+          duration={DECODE_DURATION.body}
+          delay={0.08}
+          decodeId="home-manifesto"
+        />
+        <Link className="text-link" href="/shop">
+          <DecodedText text="View the complete drop →" trigger="inView" duration={DECODE_DURATION.cta} delay={0.14} hover decodeId="home-drop" />
+        </Link>
       </section>
       <SiteFooter />
     </main>
