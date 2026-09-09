@@ -104,7 +104,7 @@ export function ShopCatalog({ products }: { products: Product[] }) {
             <Link className={`catalog-item catalog-item-${index % 4}`} href={`/product/${product.slug}`} key={product.id}>
               <div className="catalog-image">
                 <Image className="catalog-primary" src={shopImages[product.id]} alt={`${product.name} flat-lay product view`} fill sizes="(max-width: 800px) 50vw, 25vw" />
-                {shopAlternateImages[product.id] && <Image className="catalog-alternate" src={shopAlternateImages[product.id]} alt={`${product.name} face-print view`} fill sizes="(max-width: 800px) 50vw, 25vw" />}
+                {shopAlternateImages[product.id] && <Image className="catalog-alternate" src={shopAlternateImages[product.id]!} alt={`${product.name} face-print view`} fill sizes="(max-width: 800px) 50vw, 25vw" />}
                 <span>NO. {String(index + 1).padStart(2, '0')}</span>
               </div>
               <div className="catalog-info"><p><strong>{product.name}</strong><span>{product.id}</span></p><span>€{product.price}</span></div>
