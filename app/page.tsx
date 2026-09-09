@@ -14,7 +14,7 @@ export default function Home() {
           <Image src="/hael-campaign-01.png" alt="Model wearing HAEL's black graphic long-sleeve top in a dark studio" fill priority sizes="100vw" />
         </figure>
         <p className="campaign-control campaign-collection">Collection / 001</p>
-        <Link className="campaign-control campaign-enter" href="/shop">Enter collection <span aria-hidden="true">↗</span></Link>
+        <Link className="campaign-control campaign-enter campaign-shop-now" href="/shop">Shop now <span aria-hidden="true">↗</span></Link>
       </section>
 
       <section className="collection-intro page-shell" id="collection">
