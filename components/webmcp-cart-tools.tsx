@@ -13,7 +13,7 @@ export function WebMcpCartTools() {
     const controller = new AbortController();
     const register = async () => {
       await context.registerTool({
-        name: 'add_product_to_bag', title: 'Add product to bag', description: 'Add one available PEYAM product and size to the local shopping bag.',
+        name: 'add_product_to_bag', title: 'Add product to bag', description: 'Add one available HAEL product and size to the local shopping bag.',
         inputSchema: { type: 'object', properties: { slug: { type: 'string' }, size: { type: 'string', enum: sizes } }, required: ['slug', 'size'], additionalProperties: false },
         annotations: { readOnlyHint: false, untrustedContentHint: false },
         execute(input: unknown) {
@@ -25,7 +25,7 @@ export function WebMcpCartTools() {
         },
       }, { signal: controller.signal });
       await context.registerTool({
-        name: 'read_bag', title: 'Read bag', description: 'Read the current PEYAM shopping bag from this device.',
+        name: 'read_bag', title: 'Read bag', description: 'Read the current HAEL shopping bag from this device.',
         inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false },
         execute() { return { lines: readCart() }; },
       }, { signal: controller.signal });

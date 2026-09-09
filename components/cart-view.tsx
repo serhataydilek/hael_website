@@ -2,17 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { readCart, writeCart, type CartLine } from '@/lib/cart';
+import { useStorefront } from '@/components/storefront-experience';
 import { products } from '@/lib/products';
 
 export function CartView() {
-  const [lines, setLines] = useState<CartLine[]>([]);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    queueMicrotask(() => { setLines(readCart()); setReady(true); });
-  }, []);
-  const update = (next: CartLine[]) => { setLines(next); writeCart(next); };
+  const { lines, ready, updateCart: update } = useStorefront();
   const total = lines.reduce((sum, line) => sum + (products.find((p) => p.id === line.productId)?.price ?? 0) * line.quantity, 0);
 
   return <section className="cart-page page-shell"><header><p className="eyebrow">CURRENT SELECTION</p><h1>Bag / {String(lines.reduce((sum, line) => sum + line.quantity, 0)).padStart(2, '0')}</h1></header>

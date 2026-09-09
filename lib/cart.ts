@@ -1,7 +1,7 @@
 import type { Size } from './products';
 
 export type CartLine = { productId: string; size: Size; quantity: number };
-export const CART_KEY = 'peyam-cart';
+export const CART_KEY = 'hael-cart';
 
 export function readCart(): CartLine[] {
   if (typeof window === 'undefined') return [];
@@ -13,7 +13,7 @@ export function readCart(): CartLine[] {
 
 export function writeCart(lines: CartLine[]) {
   localStorage.setItem(CART_KEY, JSON.stringify(lines));
-  window.dispatchEvent(new Event('peyam-cart-updated'));
+  window.dispatchEvent(new Event('hael-cart-updated'));
 }
 
 export function addCartLine(productId: string, size: Size, quantity = 1) {

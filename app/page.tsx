@@ -10,22 +10,22 @@ export default function Home() {
       <SiteHeader />
       <section className="editorial-hero">
         <div className="hero-copy">
-          <p className="eyebrow">PEYAM / COLLECTION 001 / 2026</p>
-          <h1>Garments<br />for quiet<br />structures.</h1>
+          <p className="eyebrow">HAEL / DROP 001 / 2026</p>
+          <h1>Worn<br />after<br />dark.</h1>
           <div className="hero-meta">
-            <p>Ten studies in black cotton. Weight, proportion and construction reduced to their necessary form.</p>
-            <Link className="text-link" href="/shop">Enter collection <span aria-hidden="true">↗</span></Link>
+            <p>Three black garments pulled from sketches into the night. Bleached marks, mesh, and distorted portraits.</p>
+            <Link className="text-link" href="/shop">Enter drop <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
         <figure className="hero-image">
-          <Image src="/hero-architecture.png" alt="Model wearing a black T-shirt in a concrete interior" fill priority sizes="(max-width: 768px) 100vw, 59vw" />
-          <figcaption>Study 01 / Concrete volume</figcaption>
+          <Image src="/hael-campaign-01.png" alt="Model wearing HAEL's black graphic long-sleeve top in a dark studio" fill priority sizes="(max-width: 768px) 100vw, 59vw" />
+          <figcaption>Frame 01 / Afterimage</figcaption>
         </figure>
       </section>
 
       <section className="collection-intro page-shell">
-        <p className="eyebrow">COLLECTION 001 — SYSTEM / FORM</p>
-        <p className="collection-statement">A single garment examined through ten calibrated variations. Built for repetition, movement and the architecture of everyday use.</p>
+        <p className="eyebrow">DROP 001 — SIGNAL / SHADOW</p>
+        <p className="collection-statement">A study in altered surfaces. Three silhouettes carry marks that emerge, disappear, and return under light.</p>
       </section>
 
       <section className="home-products page-shell" aria-label="Selected products">
@@ -43,9 +43,9 @@ export default function Home() {
       </section>
 
       <section className="manifesto page-shell">
-        <p className="eyebrow">OPERATING PRINCIPLES</p>
-        <p>We make fewer things, with more attention. Each garment begins with material, then follows the body—never the spectacle around it.</p>
-        <Link className="text-link" href="/shop">View all ten studies <span aria-hidden="true">→</span></Link>
+        <p className="eyebrow">HAEL / FIELD NOTES</p>
+        <p>Built from abrasion, repetition, and the trace a body leaves behind. The graphic is not decoration. It is the evidence.</p>
+        <Link className="text-link" href="/shop">View the complete drop <span aria-hidden="true">→</span></Link>
       </section>
       <SiteFooter />
     </main>

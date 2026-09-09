@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { WebMcpCartTools } from '@/components/webmcp-cart-tools';
+import { StorefrontExperience } from '@/components/storefront-experience';
 
 export const metadata: Metadata = {
-  title: { default: 'PEYAM — Collection 001', template: '%s — PEYAM' },
-  description: 'Independent garment studies in black cotton. Collection 001.',
+  title: { default: 'HAEL — Drop 001', template: '%s — HAEL' },
+  description: 'HAEL Drop 001. Black garments, altered surfaces, and afterimages.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><WebMcpCartTools />{children}</body></html>;
+  return <html lang="en"><body><StorefrontExperience><WebMcpCartTools />{children}</StorefrontExperience></body></html>;
 }

@@ -6,7 +6,11 @@ export type Product = {
   description: string; material: string; fit: string; gsm: number; sizes: readonly Size[];
 };
 
-const base = { images: ['/product-form.png', '/product-detail.png'], material: '100% compact organic cotton', sizes };
+const base = {
+  images: ['/hael-campaign-01.png', '/hael-campaign-02.png', '/hael-campaign-03.png'],
+  material: '100% compact organic cotton',
+  sizes,
+};
 
 export const products: Product[] = [
   { ...base, id: 'P-001-A', name: 'Volume Tee', slug: 'volume-tee', price: 118, description: 'A measured oversized T-shirt with a dense hand and controlled drape.', fit: 'Oversized / dropped shoulder', gsm: 280 },
