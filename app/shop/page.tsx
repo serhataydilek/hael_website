@@ -6,7 +6,7 @@ import { products } from '@/lib/products';
 export const metadata = { title: 'Drop 001' };
 
 export default function ShopPage() {
-  return <main><SiteHeader /><header className="shop-heading page-shell"><p className="eyebrow">HAEL / CURRENT</p><h1>Drop<br />001</h1><div><span>10 OBJECTS</span><span>BLACK / ALTERED</span><span>2026.09</span></div></header>
+  return <main className="shop-page"><SiteHeader /><header className="shop-heading page-shell"><h1>Drop 001 <span>({products.length})</span></h1></header>
     <ShopCatalog products={products} />
     <SiteFooter /></main>;
 }

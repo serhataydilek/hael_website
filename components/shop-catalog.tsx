@@ -76,7 +76,7 @@ export function ShopCatalog({ products }: { products: Product[] }) {
         </div>
 
         <div className="catalog-status" aria-live="polite">
-          <span>{String(visibleProducts.length).padStart(2, '0')} / {String(products.length).padStart(2, '0')} objects</span>
+          <span>{visibleProducts.length} results</span>
           {hasFilters && <button type="button" onClick={resetFilters}>Clear filters</button>}
         </div>
       </section>
@@ -90,7 +90,7 @@ export function ShopCatalog({ products }: { products: Product[] }) {
                 <Image className="catalog-alternate" src={product.images[(index + 1) % product.images.length]} alt="" fill sizes="(max-width: 700px) 100vw, 45vw" />
                 <span>NO. {String(index + 1).padStart(2, '0')}</span>
               </div>
-              <div className="catalog-info"><p><span>{product.id}</span><strong>{product.name}</strong></p><p>{product.fit}<br />{product.gsm} GSM</p><span>€{product.price}</span></div>
+              <div className="catalog-info"><p><strong>{product.name}</strong><span>{product.id}</span></p><span>€{product.price}</span></div>
             </Link>
           ))}
         </section>
