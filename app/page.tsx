@@ -7,28 +7,23 @@ import { products } from '@/lib/products';
 export default function Home() {
   return (
     <main>
-      <SiteHeader />
-      <section className="editorial-hero">
-        <div className="hero-copy">
-          <p className="eyebrow">HAEL / DROP 001 / 2026</p>
-          <h1>Worn<br />after<br />dark.</h1>
-          <div className="hero-meta">
-            <p>Three black garments pulled from sketches into the night. Bleached marks, mesh, and distorted portraits.</p>
-            <Link className="text-link" href="/shop">Enter drop <span aria-hidden="true">↗</span></Link>
-          </div>
-        </div>
-        <figure className="hero-image">
-          <Image src="/hael-campaign-01.png" alt="Model wearing HAEL's black graphic long-sleeve top in a dark studio" fill priority sizes="(max-width: 768px) 100vw, 59vw" />
-          <figcaption>Frame 01 / Afterimage</figcaption>
+      <SiteHeader variant="home" />
+      <section className="campaign-hero" aria-labelledby="campaign-title">
+        <h1 id="campaign-title" className="visually-hidden">HAEL Collection 001</h1>
+        <figure className="campaign-image">
+          <Image src="/hael-campaign-01.png" alt="Model wearing HAEL's black graphic long-sleeve top in a dark studio" fill priority sizes="100vw" />
         </figure>
+        <p className="campaign-control campaign-collection">Collection / 001</p>
+        <Link className="campaign-control campaign-enter" href="/shop">Enter collection <span aria-hidden="true">↗</span></Link>
       </section>
 
-      <section className="collection-intro page-shell">
-        <p className="eyebrow">DROP 001 — SIGNAL / SHADOW</p>
-        <p className="collection-statement">A study in altered surfaces. Three silhouettes carry marks that emerge, disappear, and return under light.</p>
+      <section className="collection-intro page-shell" id="collection">
+        <p className="eyebrow">Collection / 001</p>
+        <h2 className="collection-statement">Garments for<br />altered proportions.</h2>
+        <div className="collection-index" aria-label="Collection details"><span>10 objects</span><span>2026</span></div>
       </section>
 
-      <section className="home-products page-shell" aria-label="Selected products">
+      <section className="home-products page-shell" id="lookbook" aria-label="Collection 001 lookbook">
         {products.slice(0, 3).map((product, index) => (
           <Link className={`home-product home-product-${index + 1}`} href={`/product/${product.slug}`} key={product.id}>
             <div className="product-study">
@@ -42,7 +37,7 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="manifesto page-shell">
+      <section className="manifesto page-shell" aria-label="HAEL field notes">
         <p className="eyebrow">HAEL / FIELD NOTES</p>
         <p>Built from abrasion, repetition, and the trace a body leaves behind. The graphic is not decoration. It is the evidence.</p>
         <Link className="text-link" href="/shop">View the complete drop <span aria-hidden="true">→</span></Link>

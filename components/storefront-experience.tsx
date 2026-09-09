@@ -58,8 +58,7 @@ function OpeningScreen({ pathname }: { pathname: string }) {
 
   return (
     <div className="opening-screen" data-phase={phase} aria-hidden="true" onAnimationEnd={(event) => event.currentTarget === event.target && phase === 'playing' && setPhase('done')}>
-      <div className="opening-mark"><strong>HAEL</strong><span>DROP / 001</span></div>
-      <span className="opening-coordinate">IST / 41.0082° N</span>
+      <div className="opening-mark"><strong>HAEL</strong></div>
     </div>
   );
 }
