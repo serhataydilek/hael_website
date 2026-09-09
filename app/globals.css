@@ -30,8 +30,8 @@ button,input,select { font:inherit; }
 
 .route-stage { animation:route-enter .38s cubic-bezier(.2,.7,.2,1) both; }
 .opening-screen { position:fixed; inset:0; z-index:100; overflow:hidden; background:#050505; color:var(--ink); pointer-events:auto; }
-.opening-screen[data-phase='playing'] { animation:opening-exit 2.6s ease both; }
-.opening-mark { position:absolute; left:50%; top:50%; width:min(44rem,92vw); transform:translate(-50%,-50%); animation:opening-mark 2.45s ease both; }
+.opening-screen[data-phase='playing'] { animation:opening-exit 3.2s cubic-bezier(.4,0,.2,1) both; }
+.opening-mark { position:absolute; left:50%; top:50%; width:min(44rem,92vw); transform:translate(-50%,-50%); animation:opening-mark 2.85s cubic-bezier(.4,0,.2,1) both; }
 .opening-logo-window { position:relative; display:block; width:100%; aspect-ratio:1.52/1; overflow:hidden; }
 .opening-logo-window img { position:absolute; left:0; top:0; width:100%; height:auto; max-width:none; }
 
@@ -70,8 +70,8 @@ button,input,select { font:inherit; }
 .drawer-bag-link:hover { background:#ccc; }
 .animated-subtotal { display:inline-block; animation:numeric-enter .28s cubic-bezier(.2,.7,.2,1); }
 
-@keyframes opening-mark { 0%,5%{opacity:0} 16%,82%{opacity:1} 100%{opacity:0} }
-@keyframes opening-exit { 0%,82%{opacity:1} 100%{opacity:0;visibility:hidden} }
+@keyframes opening-mark { 0%,4%{opacity:0} 15%,72%{opacity:1} 100%{opacity:0} }
+@keyframes opening-exit { 0%,84%{opacity:1} 100%{opacity:0;visibility:hidden} }
 @keyframes route-enter { from{opacity:0} to{opacity:1} }
 @keyframes drawer-line-enter { to{opacity:1;transform:translateX(0)} }
 @keyframes numeric-enter { from{opacity:.25;transform:translateY(.35rem)} to{opacity:1;transform:translateY(0)} }
