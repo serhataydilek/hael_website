@@ -2,27 +2,67 @@ export const sizes = ['S', 'M', 'L', 'XL'] as const;
 export type Size = (typeof sizes)[number];
 
 export type Product = {
-  id: string; name: string; slug: string; price: number; images: string[];
+  id: string; name: string; slug: string; price: number; images: readonly [string, ...string[]];
   description: string; material: string; fit: string; gsm: number; sizes: readonly Size[];
 };
 
-const base = {
-  images: ['/hael-campaign-01.png', '/hael-campaign-02.png', '/hael-campaign-03.png'],
-  material: '100% compact organic cotton',
+// TEMPORARY Drop 001 catalog records.
+// Replace names, prices, descriptions, and specs when final copy is confirmed.
+const PLACEHOLDER_PRICE = 118;
+const PLACEHOLDER_MATERIAL = '100% compact organic cotton';
+const PLACEHOLDER_GSM = 180;
+const PLACEHOLDER_DESCRIPTION = 'Drop 001 garment.';
+
+const temporaryBase = {
+  price: PLACEHOLDER_PRICE,
+  material: PLACEHOLDER_MATERIAL,
+  gsm: PLACEHOLDER_GSM,
+  description: PLACEHOLDER_DESCRIPTION,
   sizes,
 };
 
 export const products: Product[] = [
-  { ...base, id: 'P-001-A', name: 'Volume Tee', slug: 'volume-tee', price: 118, description: 'A measured oversized T-shirt with a dense hand and controlled drape.', fit: 'Oversized / dropped shoulder', gsm: 280 },
-  { ...base, id: 'P-001-B', name: 'Axis Tee', slug: 'axis-tee', price: 126, description: 'An asymmetric seam study built around a straight, relaxed body.', fit: 'Relaxed / offset seam', gsm: 260 },
-  { ...base, id: 'P-001-C', name: 'Field Tee', slug: 'field-tee', price: 112, description: 'A compact daily layer with a slightly shortened architectural proportion.', fit: 'Boxy / cropped length', gsm: 240 },
-  { ...base, id: 'P-001-D', name: 'Relief Tee', slug: 'relief-tee', price: 132, description: 'Dense jersey shaped by a subtle articulated side panel.', fit: 'Regular / articulated side', gsm: 300 },
-  { ...base, id: 'P-001-E', name: 'Span Tee', slug: 'span-tee', price: 120, description: 'Wide through the chest with a quiet taper at the hem.', fit: 'Wide / tapered hem', gsm: 270 },
-  { ...base, id: 'P-001-F', name: 'Datum Tee', slug: 'datum-tee', price: 108, description: 'The collection baseline: balanced weight, proportion and restraint.', fit: 'Regular / straight body', gsm: 250 },
-  { ...base, id: 'P-001-G', name: 'Void Tee', slug: 'void-tee', price: 138, description: 'A longer silhouette with a deep side split and reinforced neckline.', fit: 'Long / side split', gsm: 290 },
-  { ...base, id: 'P-001-H', name: 'Fold Tee', slug: 'fold-tee', price: 128, description: 'An inward shoulder fold creates structure without added volume.', fit: 'Relaxed / shaped shoulder', gsm: 265 },
-  { ...base, id: 'P-001-I', name: 'Trace Tee', slug: 'trace-tee', price: 116, description: 'A lightweight study with exposed cover-stitch construction.', fit: 'Slim / elongated sleeve', gsm: 220 },
-  { ...base, id: 'P-001-J', name: 'Mass Tee', slug: 'mass-tee', price: 142, description: 'The heaviest garment in the system, cut with deliberate volume.', fit: 'Oversized / rigid drape', gsm: 340 },
+  {
+    ...temporaryBase,
+    id: 'HAEL-001',
+    name: 'HAEL 001',
+    slug: 'hael-001',
+    images: ['/products/drop-001/hael-001-front.png'],
+    fit: 'Oversized / short sleeve',
+  },
+  {
+    ...temporaryBase,
+    id: 'HAEL-002',
+    name: 'HAEL 002',
+    slug: 'hael-002',
+    images: ['/products/drop-001/hael-002-front.png'],
+    fit: 'Oversized / short sleeve',
+  },
+  {
+    ...temporaryBase,
+    id: 'HAEL-003',
+    name: 'HAEL 003',
+    slug: 'hael-003',
+    images: ['/products/drop-001/hael-003-front.png'],
+    fit: 'Oversized / short sleeve',
+  },
+  {
+    ...temporaryBase,
+    id: 'HAEL-004',
+    name: 'HAEL 004',
+    slug: 'hael-004',
+    images: ['/products/drop-001/hael-004-front.png'],
+    fit: 'Oversized / long sleeve',
+  },
+  {
+    ...temporaryBase,
+    id: 'HAEL-005',
+    name: 'HAEL 005',
+    slug: 'hael-005',
+    images: ['/products/drop-001/hael-005-front.png'],
+    fit: 'Oversized / long sleeve',
+  },
 ];
 
 export function getProduct(slug: string) { return products.find((product) => product.slug === slug); }
+export function getProductById(id: string) { return products.find((product) => product.id === id); }

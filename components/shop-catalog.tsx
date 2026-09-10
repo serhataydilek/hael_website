@@ -8,23 +8,6 @@ import type { Product } from '@/lib/products';
 
 type SortOption = 'featured' | 'price-low' | 'price-high' | 'name';
 
-const shopImages: Record<string, string> = {
-  'P-001-A': '/shop-volume-tee-flat.png',
-  'P-001-B': '/shop-axis-tee-flat.png',
-  'P-001-C': '/shop-field-tee-flat.png',
-  'P-001-D': '/shop-relief-tee-flat.png',
-  'P-001-E': '/shop-span-tee-flat.png',
-  'P-001-F': '/shop-datum-tee-flat.png',
-  'P-001-G': '/shop-void-tee-flat.png',
-  'P-001-H': '/shop-fold-tee-flat.png',
-  'P-001-I': '/shop-trace-tee-flat.png',
-  'P-001-J': '/shop-mass-tee-flat.png',
-};
-
-const shopAlternateImages: Partial<Record<string, string>> = {
-  'P-001-I': '/shop-trace-tee-face.png',
-};
-
 function getFit(product: Product) {
   return product.fit.split('/')[0].trim();
 }
@@ -104,8 +87,8 @@ export function ShopCatalog({ products }: { products: Product[] }) {
           {visibleProducts.map((product, index) => (
             <Link className={`catalog-item catalog-item-${index % 4}`} href={`/product/${product.slug}`} key={product.id}>
               <div className="catalog-image">
-                <Image className="catalog-primary" src={shopImages[product.id]} alt={`${product.name} flat-lay product view`} fill sizes="(max-width: 800px) 50vw, 25vw" />
-                {shopAlternateImages[product.id] && <Image className="catalog-alternate" src={shopAlternateImages[product.id]!} alt={`${product.name} face-print view`} fill sizes="(max-width: 800px) 50vw, 25vw" />}
+                <Image className="catalog-primary" src={product.images[0]} alt={`${product.name} flat-lay product view`} fill sizes="(max-width: 800px) 50vw, 25vw" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} />
+                {product.images[1] && <Image className="catalog-alternate" src={product.images[1]} alt={`${product.name} alternate view`} fill sizes="(max-width: 800px) 50vw, 25vw" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} />}
                 <DecodedText text={`NO. ${String(index + 1).padStart(2, '0')}`} trigger="inView" duration={0.3} decodeId={`shop-no-${product.id}`} />
               </div>
               <div className="catalog-info"><p><strong>{product.name}</strong><span>{product.id}</span></p><span>€{product.price}</span></div>

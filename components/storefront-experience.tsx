@@ -127,7 +127,7 @@ function CartDrawer({ lines, open, onClose, updateCart }: { lines: CartLine[]; o
             if (!product) return null;
             const style = { '--line-index': index } as CSSProperties;
             return <article className="drawer-line" style={style} key={`${line.productId}-${line.size}`}>
-              <Link className="drawer-thumb" href={`/product/${product.slug}`} onClick={onClose}><Image src={product.images[0]} alt="" fill sizes="104px" /></Link>
+              <Link className="drawer-thumb" href={`/product/${product.slug}`} onClick={onClose}><Image src={product.images[0]} alt="" fill sizes="104px" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} /></Link>
               <div className="drawer-line-main"><p>{product.name}</p><span>{product.id} / BLACK / {line.size}</span><div className="drawer-quantity"><button aria-label={`Decrease ${product.name} quantity`} onClick={() => updateCart(line.quantity === 1 ? lines.filter((item) => item !== line) : lines.map((item) => item === line ? { ...item, quantity: item.quantity - 1 } : item))}>−</button><strong>{String(line.quantity).padStart(2, '0')}</strong><button aria-label={`Increase ${product.name} quantity`} onClick={() => updateCart(lines.map((item) => item === line ? { ...item, quantity: item.quantity + 1 } : item))}>+</button></div></div>
               <div className="drawer-line-end"><span>€{product.price * line.quantity}</span><button onClick={() => updateCart(lines.filter((item) => item !== line))}>Remove</button></div>
             </article>;
@@ -157,7 +157,12 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
   const openCart = useCallback(() => setCartOpen(true), []);
 
   useEffect(() => {
-    queueMicrotask(() => { refresh(); setReady(true); });
+    queueMicrotask(() => {
+      const stored = readCart();
+      writeCart(stored);
+      setLines(stored);
+      setReady(true);
+    });
     window.addEventListener('hael-cart-updated', refresh);
     window.addEventListener('storage', refresh);
     return () => {
