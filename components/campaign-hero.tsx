@@ -122,7 +122,8 @@ export const CampaignHero = memo(function CampaignHero() {
       const found: Record<Word, boolean> = { dont: false, blame: false, us: false };
       const mode = { current: 'discover' as PhraseMode };
       const reduced = prefersReducedMotion();
-      const coarse = reduced || !hasFinePointer() || window.innerWidth < 700;
+      const mobileAutoReveal = window.innerWidth < 700;
+      const autoReveal = reduced || mobileAutoReveal || !hasFinePointer();
       const strokes = [stroke, strokeEcho, strokeGhost];
       let openingReady = false;
       let depthProgress = 0;
@@ -321,7 +322,7 @@ export const CampaignHero = memo(function CampaignHero() {
       };
 
       const stampAt = (clientX: number, clientY: number) => {
-        if (!openingReady || mode.current !== 'discover' || coarse || !art) return;
+        if (!openingReady || mode.current !== 'discover' || autoReveal || !art) return;
         sizeBrush();
         const box = stage.getBoundingClientRect();
         const x = clientX - box.left;
@@ -375,7 +376,7 @@ export const CampaignHero = memo(function CampaignHero() {
           return;
         }
 
-        if (coarse) {
+        if (autoReveal) {
           setMode('focus');
           markHeroRevealed();
           WORDS.forEach((word) => {

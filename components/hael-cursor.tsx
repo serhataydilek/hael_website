@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 
 const FINE_POINTER = '(hover: hover) and (pointer: fine)';
 const CURSOR_SRC = '/cursor/hael-cursor.webp';
-const CURSOR_WIDTH = 38;
-const CURSOR_HEIGHT = 22;
+const CURSOR_WIDTH = 18;
+const CURSOR_HEIGHT = 10;
 const HOTSPOT_X = 1;
-const HOTSPOT_Y = 3;
+const HOTSPOT_Y = 1;
 const INTERACTIVE = 'a, button, [role="button"], [role="link"], label, select, summary, input, textarea';
 
 function loaderPlaying() {

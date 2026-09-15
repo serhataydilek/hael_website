@@ -19,8 +19,21 @@ export { DEFAULT_SITE_FOOTER_VARIANT };
 function HaelMark() {
   return (
     <span className="hael-mark-crop footer-hael-mark" aria-hidden="true">
-      <Image src="/hael-logo-reference.png" alt="" width={1600} height={1125} />
+      <Image src="/brand/hael-footer-mark-soft.png" alt="" width={720} height={720} unoptimized />
     </span>
+  );
+}
+
+function FooterMarkSoft() {
+  return (
+    <Image
+      src="/brand/hael-footer-mark-soft.png"
+      alt=""
+      className="footer-top-logo-image"
+      width={720}
+      height={720}
+      unoptimized
+    />
   );
 }
 
@@ -44,27 +57,37 @@ function FooterNav({ layout }: { layout: 'row' | 'stack' }) {
 function MonolithFooter() {
   return (
     <div className="footer-frame">
-      <div className="footer-monolith-top">
-        <div className="footer-monolith-left">
+      <div className="footer-top">
+        <div className="footer-top-left">
           <p className="footer-kicker">DON&apos;T BLAME US.</p>
           <FooterNav layout="row" />
         </div>
-        <div className="footer-monolith-end">
-          <div className="footer-monolith-meta">
+        <div className="footer-top-meta">
+          <p className="footer-meta">
             <span>HAEL</span>
             <span>DROP 001</span>
             <span>ISTANBUL, 2026</span>
-          </div>
+          </p>
+        </div>
+        <div className="footer-top-logo">
           <Link className="footer-mark-link" href="/" aria-label="HAEL home">
-            <HaelMark />
+            <FooterMarkSoft />
           </Link>
         </div>
       </div>
-      <div className="footer-monolith-stage">
-        <p className="footer-monolith-word" aria-label="HAEL">
-          <span aria-hidden="true">HAEL</span>
-        </p>
-        <div className="footer-monolith-aside">
+      <div className="footer-divider" />
+      <div className="footer-bottom">
+        <div className="footer-monolith-wordmark">
+          <Image
+            src="/brand/hael-monolith-wordmark-soft.png"
+            alt="HAEL"
+            className="footer-monolith-wordmark-image"
+            width={2078}
+            height={468}
+            unoptimized
+          />
+        </div>
+        <div className="footer-side">
           <p>
             © 2026 HAEL
             <br />

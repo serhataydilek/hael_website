@@ -235,6 +235,11 @@ export const FieldNotes = memo(function FieldNotes() {
       <Link className="text-link manifesto-cta" href="/shop" aria-label="View the complete drop">
         <PrintField text={CTA} variant="cta" as="span" className="manifesto-cta-label" silent />
       </Link>
+      <p className="manifesto-balance-meta" aria-label="Clothing. Objects. A state of mind.">
+        <span>CLOTHING</span>
+        <span>OBJECTS</span>
+        <span>A STATE OF MIND.</span>
+      </p>
     </section>
   );
 });
