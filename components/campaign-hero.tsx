@@ -9,6 +9,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CampaignMark } from '@/components/campaign-mark';
 import { DecodedText } from '@/components/decoded-text';
 import { DECODE_DURATION, hasFinePointer, prefersReducedMotion, whenHeroAvailable } from '@/lib/text-decode';
+import { clearHeroRevealed, markHeroRevealed } from '@/lib/hero-reveal';
 import {
   BRUSH_FEATHER,
   BRUSH_GAP,
@@ -280,6 +281,7 @@ export const CampaignHero = memo(function CampaignHero() {
       const enterFocus = (animate: boolean) => {
         if (mode.current === 'focus' || mode.current === 'gone') return;
         setMode('focus');
+        markHeroRevealed();
         WORDS.forEach((word) => {
           found[word] = true;
         });
@@ -375,6 +377,7 @@ export const CampaignHero = memo(function CampaignHero() {
 
         if (coarse) {
           setMode('focus');
+          markHeroRevealed();
           WORDS.forEach((word) => {
             found[word] = true;
           });
@@ -463,6 +466,7 @@ export const CampaignHero = memo(function CampaignHero() {
       const stopWaiting = whenHeroAvailable(bind(startHero));
       return () => {
         cancelled = true;
+        clearHeroRevealed();
         stopWaiting();
         trigger?.kill();
         resizeObserver.disconnect();
@@ -509,8 +513,8 @@ export const CampaignHero = memo(function CampaignHero() {
       <p className="campaign-control campaign-collection">
         <DecodedText text="COLLECTION / 001" trigger="hero" duration={DECODE_DURATION.ui} delay={0.16} />
       </p>
-      <Link className="campaign-control campaign-enter" href="/shop" aria-label="Shop">
-        <DecodedText text="SHOP →" trigger="hero" duration={0.36} delay={0.24} hover accessible={false} />
+      <Link className="campaign-control campaign-enter" href="/shop" aria-label="Shop now">
+        <DecodedText text="SHOP NOW" trigger="hero" duration={0.36} delay={0.24} hover accessible={false} /> <span className="campaign-enter-arrow" aria-hidden="true">→</span>
       </Link>
     </section>
   );

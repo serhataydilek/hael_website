@@ -2,23 +2,40 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DecodedText } from '@/components/decoded-text';
 import { useStorefront } from '@/components/storefront-experience';
+import { isHeroRevealed } from '@/lib/hero-reveal';
 
 export function SiteHeader({ variant = 'default' }: { variant?: 'default' | 'home' }) {
   const { count, openCart } = useStorefront();
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const revealedRef = useRef(false);
   const previousY = useRef(0);
   const trigger = variant === 'home' ? 'hero' : 'immediate';
+
+  useLayoutEffect(() => {
+    if (variant !== 'home') return;
+    const applyReveal = () => {
+      if (revealedRef.current || !isHeroRevealed()) return;
+      revealedRef.current = true;
+      previousY.current = window.scrollY;
+      setHidden(false);
+      setRevealed(true);
+    };
+    applyReveal();
+    window.addEventListener('hael-hero-revealed', applyReveal);
+    return () => window.removeEventListener('hael-hero-revealed', applyReveal);
+  }, [variant]);
 
   useEffect(() => {
     const onScroll = () => {
       const currentY = window.scrollY;
       const delta = currentY - previousY.current;
       setScrolled(currentY > 12);
-      if (variant === 'home') setHidden(false);
+      if (variant === 'home' && !revealedRef.current) setHidden(false);
       else if (currentY < 90) setHidden(false);
       else if (Math.abs(delta) > 8) setHidden(delta > 0);
       previousY.current = currentY;
@@ -33,7 +50,7 @@ export function SiteHeader({ variant = 'default' }: { variant?: 'default' | 'hom
   }, [variant]);
 
   return (
-    <header className="site-header" data-variant={variant} data-scrolled={scrolled} data-hidden={hidden}>
+    <header className="site-header" data-variant={variant} data-scrolled={scrolled} data-hidden={hidden} data-revealed={revealed}>
       <Link className="wordmark brand-lockup" href="/" aria-label="HAEL home">
         <span className="hael-mark-crop" aria-hidden="true">
           <Image src="/hael-logo-reference.png" alt="" width={1600} height={1125} priority />
@@ -43,19 +60,13 @@ export function SiteHeader({ variant = 'default' }: { variant?: 'default' | 'hom
       <nav aria-label="Primary navigation">
         {variant === 'home' && (
           <span className="home-secondary-nav">
-            <Link href="/shop">
+            <Link href="/shop" aria-label="Shop">
               <DecodedText text="Shop" trigger="inView" duration={0.32} hover accessible={false} decodeId="nav-shop" />
-            </Link>
-            <Link href="#collection">
-              <DecodedText text="Collection" trigger="inView" duration={0.34} delay={0.04} hover accessible={false} decodeId="nav-collection" />
-            </Link>
-            <Link href="#lookbook">
-              <DecodedText text="Lookbook" trigger="inView" duration={0.34} delay={0.08} hover accessible={false} decodeId="nav-lookbook" />
             </Link>
           </span>
         )}
         {variant === 'default' && (
-          <Link href="/shop">
+          <Link href="/shop" aria-label="Drop 001">
             <DecodedText text="Drop 001" trigger="immediate" duration={0.34} hover accessible={false} decodeId="nav-drop" />
           </Link>
         )}

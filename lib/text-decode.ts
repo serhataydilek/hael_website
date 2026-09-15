@@ -55,37 +55,34 @@ export function markDecoded(id: string) {
   }
 }
 
+let loaderSettled = false;
+
+export function markLoaderSettled() {
+  if (loaderSettled) return;
+  loaderSettled = true;
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('hael-loader-complete'));
+}
+
 export function whenHeroAvailable(onReady: () => void) {
-  let timer = 0;
-  let opening: Element | null = null;
   let settled = false;
 
   const finish = () => {
     if (settled) return;
     settled = true;
-    window.clearTimeout(timer);
-    opening?.removeEventListener('animationend', finish);
+    window.removeEventListener('hael-loader-complete', finish);
     onReady();
   };
 
-  const check = () => {
-    opening = document.querySelector('.opening-screen');
-    if (!opening) {
-      finish();
-      return;
-    }
-    if (opening.getAttribute('data-phase') === 'playing') {
-      opening.addEventListener('animationend', finish);
-      timer = window.setTimeout(finish, 1400);
-      return;
-    }
-    timer = window.setTimeout(check, 32);
-  };
+  if (loaderSettled || document.documentElement.dataset.haelLoaderMode === 'skip' || !document.querySelector('.opening-screen')) {
+    finish();
+    return () => {
+      settled = true;
+    };
+  }
 
-  check();
+  window.addEventListener('hael-loader-complete', finish);
   return () => {
     settled = true;
-    window.clearTimeout(timer);
-    opening?.removeEventListener('animationend', finish);
+    window.removeEventListener('hael-loader-complete', finish);
   };
 }

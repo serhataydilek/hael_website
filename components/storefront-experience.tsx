@@ -6,6 +6,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -17,6 +18,54 @@ import Link from 'next/link';
 import { DecodedText } from '@/components/decoded-text';
 import { addCartLine, readCart, writeCart, type CartLine } from '@/lib/cart';
 import { products, type Size } from '@/lib/products';
+import { decideLoaderMode } from '@/lib/loader-session';
+import { markLoaderSettled } from '@/lib/text-decode';
+
+const LOADER_FRAMES = [
+  '/animations/hael-loader/frame-00.webp',
+  '/animations/hael-loader/frame-01.webp',
+  '/animations/hael-loader/frame-02.webp',
+  '/animations/hael-loader/frame-03.webp',
+  '/animations/hael-loader/frame-04.webp',
+  '/animations/hael-loader/frame-05.webp',
+  '/animations/hael-loader/frame-06.webp',
+] as const;
+const FRAME_DURATION = 120;
+const FRAME_COUNT = LOADER_FRAMES.length;
+const FRAME_LAST = FRAME_COUNT - 1;
+const TOTAL_DURATION = FRAME_DURATION * FRAME_COUNT;
+const FADE_START = 720;
+
+let loaderPlayedThisDocument = false;
+
+function preloadLoaderFrames() {
+  return Promise.all(
+    LOADER_FRAMES.map((src) => {
+      const image = new window.Image();
+      image.src = src;
+      if (image.decode) return image.decode();
+      return new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error(src));
+      });
+    }),
+  );
+}
+
+function lockLoaderScroll() {
+  const root = document.documentElement;
+  root.dataset.haelLoaderMode = 'play';
+  root.dataset.haelLoaderActive = 'true';
+  root.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+}
+
+function unlockLoaderScroll() {
+  const root = document.documentElement;
+  root.removeAttribute('data-hael-loader-active');
+  root.style.removeProperty('overflow');
+  document.body.style.removeProperty('overflow');
+}
 
 type StorefrontContextValue = {
   lines: CartLine[];
@@ -38,37 +87,106 @@ export function useStorefront() {
 }
 
 function OpeningScreen({ pathname }: { pathname: string }) {
-  const [phase, setPhase] = useState<'checking' | 'playing' | 'done'>('checking');
+  const [gone, setGone] = useState(false);
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [opacity, setOpacity] = useState(1);
+  const [clockReady, setClockReady] = useState(false);
+  const resolved = useRef(false);
+  const entryPathname = useRef(pathname);
+  const finished = useRef(false);
+  const rafRef = useRef(0);
+  const startedAt = useRef(0);
+  const frameIndexRef = useRef(0);
+
+  const finish = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+    loaderPlayedThisDocument = true;
+    document.documentElement.dataset.haelLoaderMode = 'skip';
+    unlockLoaderScroll();
+    markLoaderSettled();
+    setGone(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (finished.current) return;
+    if (resolved.current) {
+      if (pathname !== entryPathname.current) finish();
+      return;
+    }
+    resolved.current = true;
+
+    if (loaderPlayedThisDocument || decideLoaderMode() === 'skip') {
+      finish();
+      return;
+    }
+
+    lockLoaderScroll();
+
+    let cancelled = false;
+    void preloadLoaderFrames()
+      .then(() => {
+        if (cancelled || finished.current) return;
+        startedAt.current = performance.now();
+        frameIndexRef.current = 0;
+        setFrameIndex(0);
+        setOpacity(1);
+        setClockReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) finish();
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [finish, pathname]);
 
   useEffect(() => {
-    const resolveOpening = () => {
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const shouldPlay = pathname === '/' && !sessionStorage.getItem('hael-opening-seen') && !reducedMotion;
-      if (!shouldPlay) {
-        setPhase('done');
+    if (!clockReady) return;
+
+    const tick = (now: number) => {
+      if (finished.current) return;
+      const elapsed = now - startedAt.current;
+      const nextFrame = Math.min(Math.floor(elapsed / FRAME_DURATION), FRAME_LAST);
+      if (nextFrame !== frameIndexRef.current) {
+        frameIndexRef.current = nextFrame;
+        setFrameIndex(nextFrame);
+      }
+      setOpacity(elapsed < FADE_START ? 1 : Math.max(0, 1 - (elapsed - FADE_START) / FRAME_DURATION));
+      if (elapsed >= TOTAL_DURATION) {
+        finish();
         return;
       }
-      setPhase('playing');
+      rafRef.current = window.requestAnimationFrame(tick);
     };
-    queueMicrotask(resolveOpening);
-  }, [pathname]);
 
-  const finishOpening = () => {
-    try {
-      sessionStorage.setItem('hael-opening-seen', 'true');
-    } catch {
-      /* ignore */
-    }
-    setPhase('done');
-  };
+    rafRef.current = window.requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    };
+  }, [clockReady, finish]);
 
-  if (pathname !== '/' || phase === 'done') return null;
+  useEffect(() => () => {
+    if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+    unlockLoaderScroll();
+  }, []);
+
+  if (gone) return null;
 
   return (
-    <div className="opening-screen" data-phase={phase} aria-hidden="true" onAnimationEnd={(event) => event.currentTarget === event.target && phase === 'playing' && finishOpening()}>
-      <div className="opening-mark">
-        <span className="opening-logo-window"><Image src="/hael-logo.jpg" alt="" width={819} height={1024} priority /></span>
-      </div>
+    <div className="opening-screen" aria-hidden="true" style={{ opacity }}>
+      <img
+        className="opening-art"
+        src={LOADER_FRAMES[frameIndex]}
+        alt=""
+        width={651}
+        height={1560}
+        draggable={false}
+      />
     </div>
   );
 }
@@ -122,7 +240,7 @@ function CartDrawer({ lines, open, onClose, updateCart }: { lines: CartLine[]; o
         </header>
 
         <div className="drawer-lines" aria-live="polite">
-          {lines.length === 0 ? <div className="drawer-empty"><DecodedText as="p" text="Your selection is empty." trigger="open" active={open} duration={0.4} decodeId="drawer-empty" /><Link href="/shop" onClick={onClose}><DecodedText text="Enter collection →" trigger="open" active={open} duration={0.34} delay={0.06} hover accessible={false} decodeId="drawer-enter" /></Link></div> : lines.map((line, index) => {
+          {lines.length === 0 ? <div className="drawer-empty"><DecodedText as="p" text="Your selection is empty." trigger="open" active={open} duration={0.4} decodeId="drawer-empty" /><Link href="/shop" onClick={onClose} aria-label="Enter collection"><DecodedText text="Enter collection →" trigger="open" active={open} duration={0.34} delay={0.06} hover accessible={false} decodeId="drawer-enter" /></Link></div> : lines.map((line, index) => {
             const product = products.find((item) => item.id === line.productId);
             if (!product) return null;
             const style = { '--line-index': index } as CSSProperties;

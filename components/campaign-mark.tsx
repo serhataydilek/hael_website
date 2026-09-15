@@ -8,7 +8,7 @@ const FIELD_GLYPHS = ['·', ':', '/', '\\', "'", '°', '+'];
 const FINE_POINTER = '(hover: hover) and (pointer: fine)';
 const EMBLEM_CROP = { x: 0.055, y: 0.03, w: 0.89, h: 0.592 };
 const EMBLEM_CROP_REF_H = 0.54;
-const POINTER_RADIUS = 148;
+const POINTER_RADIUS = 111;
 const POINTER_CORE = 25;
 const POINTER_REVEAL = 36;
 const POINTER_SHIFT = 4.2;
@@ -86,6 +86,17 @@ function inkBounds(cells: Cell[]): Dest {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
+function knockOutDark(canvas: HTMLCanvasElement, threshold = 48) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = image.data;
+  for (let i = 0; i < data.length; i += 4) {
+    if ((data[i] + data[i + 1] + data[i + 2]) / 3 < threshold) data[i + 3] = 0;
+  }
+  ctx.putImageData(image, 0, 0);
+}
+
 function destRect(viewW: number, viewH: number, aspect: number, mobile: boolean): Dest {
   const height = (mobile ? viewH * 0.58 : viewH * 0.8) * (EMBLEM_CROP.h / EMBLEM_CROP_REF_H);
   const width = height * aspect;
@@ -127,7 +138,6 @@ export function CampaignMark({ systemRef }: { systemRef?: Ref<HTMLDivElement> })
   const scheduleRef = useRef<(() => void) | null>(null);
   const emblemRef = useRef<HTMLCanvasElement | null>(null);
   const mutationTimerRef = useRef<number | null>(null);
-  const resolveRef = useRef({ x: 0, y: 0, active: false });
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -166,31 +176,27 @@ export function CampaignMark({ systemRef }: { systemRef?: Ref<HTMLDivElement> })
 
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
-      context.font = `${width < 520 ? 10 : 12}px "Courier New", Courier, monospace`;
+      context.font = `${width < 520 ? 10 : 12}px Millimetre, sans-serif`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
 
       const pointer = pointerRef.current;
       const dest = destRef.current;
       const emblem = emblemRef.current;
-      const resolve = resolveRef.current;
       const hero = frame.closest('.campaign-hero');
       const focused = hero instanceof HTMLElement && hero.dataset.phrase === 'focus';
       const reaction = pointer.active ? (focused ? POINTER_FOCUS_SCALE : 1) : 0;
       const nearEmblem = pointer.active && distanceToRect(pointer.x, pointer.y, inkRef.current) <= POINTER_ZONE;
-      const reveal = (x: number, y: number, radius: number, alpha: number) => {
-        if (!emblem || !dest.w) return;
+
+      if (nearEmblem && emblem && dest.w) {
         context.save();
         context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.arc(pointer.x, pointer.y, POINTER_REVEAL, 0, Math.PI * 2);
         context.clip();
-        context.globalAlpha = alpha;
+        context.globalAlpha = focused ? 0.28 : 0.46;
         context.drawImage(emblem, dest.x, dest.y, dest.w, dest.h);
         context.restore();
-      };
-
-      if (nearEmblem) reveal(pointer.x, pointer.y, POINTER_REVEAL, focused ? 0.28 : 0.46);
-      if (resolve.active) reveal(resolve.x, resolve.y, 42, 0.22);
+      }
 
       const bucket = Math.floor(pointer.x * 0.035) * 19 + Math.floor(pointer.y * 0.035) * 13;
 
@@ -256,6 +262,7 @@ export function CampaignMark({ systemRef }: { systemRef?: Ref<HTMLDivElement> })
       emblemPlate.height = Math.round(cropH);
       const plateContext = emblemPlate.getContext('2d');
       plateContext?.drawImage(source, cropX, cropY, cropW, cropH, 0, 0, emblemPlate.width, emblemPlate.height);
+      knockOutDark(emblemPlate);
       emblemRef.current = emblemPlate;
 
       for (let row = 0; row < rows; row += 1) {
@@ -339,6 +346,9 @@ export function CampaignMark({ systemRef }: { systemRef?: Ref<HTMLDivElement> })
       buildCells();
     });
     observer.observe(frame);
+    void document.fonts.load('12px Millimetre').then(() => {
+      if (!disposed) scheduleDraw();
+    });
 
     const clearMutationTimer = () => {
       if (mutationTimerRef.current === null) return;
@@ -395,12 +405,6 @@ export function CampaignMark({ systemRef }: { systemRef?: Ref<HTMLDivElement> })
         }
       }
 
-      if (emblem.length && Math.random() < 0.38) {
-        const spot = emblem[Math.floor(Math.random() * emblem.length)];
-        resolveRef.current = { x: spot.x, y: spot.y, active: true };
-      } else {
-        resolveRef.current = { x: 0, y: 0, active: false };
-      }
       scheduleDraw();
     };
 

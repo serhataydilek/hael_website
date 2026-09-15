@@ -18,8 +18,8 @@ export const DONT_END = 0.3517;
 export const BLAME_END = 0.736;
 export const STEM_CENTER = 955 / 2360;
 
-export const BRUSH_RADIUS = 86;
-export const BRUSH_FEATHER = 26;
+export const BRUSH_RADIUS = 40;
+export const BRUSH_FEATHER = 12;
 export const BRUSH_GAP = 10;
 export const REGION_THRESHOLD = 0.62;
 
