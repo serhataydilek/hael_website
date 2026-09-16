@@ -20,6 +20,7 @@ import { addCartLine, readCart, writeCart, type CartLine } from '@/lib/cart';
 import { products, type Size } from '@/lib/products';
 import { decideLoaderMode } from '@/lib/loader-session';
 import { markLoaderSettled } from '@/lib/text-decode';
+import { clearStrokeHandoff, consumeStrokeHandoff } from '@/lib/stroke-handoff';
 
 const LOADER_FRAMES = [
   '/animations/hael-loader/frame-00.webp',
@@ -267,6 +268,7 @@ function CartDrawer({ lines, open, onClose, updateCart }: { lines: CartLine[]; o
 export function StorefrontExperience({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [handoff, setHandoff] = useState(false);
   const [ready, setReady] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
 
@@ -300,13 +302,23 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
     setCartOpen(true);
   }, []);
 
+  useLayoutEffect(() => {
+    setHandoff(consumeStrokeHandoff());
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!handoff) return;
+    const timer = window.setTimeout(() => clearStrokeHandoff(), 400);
+    return () => window.clearTimeout(timer);
+  }, [handoff]);
+
   const count = lines.reduce((sum, line) => sum + line.quantity, 0);
   const value = { lines, ready, isCartOpen, count, openCart, closeCart, addItem, updateCart };
 
   return (
     <StorefrontContext.Provider value={value}>
       <OpeningScreen pathname={pathname} />
-      <div className="route-stage" key={pathname}>{children}</div>
+      <div className="route-stage" data-handoff={handoff ? 'true' : undefined} key={pathname}>{children}</div>
       <CartDrawer lines={lines} open={isCartOpen} onClose={closeCart} updateCart={updateCart} />
     </StorefrontContext.Provider>
   );

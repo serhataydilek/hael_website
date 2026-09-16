@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { memo, useRef, type Ref } from 'react';
+import { useRouter } from 'next/navigation';
+import { memo, useRef, useState, type MouseEvent, type Ref } from 'react';
+import { flushSync } from 'react-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -10,6 +12,7 @@ import { CampaignMark } from '@/components/campaign-mark';
 import { DecodedText } from '@/components/decoded-text';
 import { DECODE_DURATION, hasFinePointer, prefersReducedMotion, whenHeroAvailable } from '@/lib/text-decode';
 import { clearHeroRevealed, markHeroRevealed } from '@/lib/hero-reveal';
+import { clearStrokeHandoff, markStrokeHandoff } from '@/lib/stroke-handoff';
 import {
   BRUSH_FEATHER,
   BRUSH_GAP,
@@ -38,6 +41,12 @@ const FOCUS_DURATION = 0.42;
 const DISMISS_DURATION = 0.4;
 const EMBLEM_FOCUS = 0.74;
 const EMBLEM_BLUR = 3;
+const MOBILE_HERO_MAX = 700;
+const MOBILE_NAV_MS = 160;
+
+function isMobileHeroViewport() {
+  return window.innerWidth < MOBILE_HERO_MAX;
+}
 
 const ECHO_SHIFT: Record<Word, { x: number; y: number }> = {
   dont: { x: -5, y: 2 },
@@ -84,6 +93,9 @@ function StrokeCopy({ className, nodeRef }: { className: string; nodeRef?: Ref<H
 }
 
 export const CampaignHero = memo(function CampaignHero() {
+  const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
   const rootRef = useRef<HTMLElement>(null);
   const markRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLSpanElement>(null);
@@ -96,6 +108,10 @@ export const CampaignHero = memo(function CampaignHero() {
   const strokeRef = useRef<HTMLSpanElement>(null);
   const strokeEchoRef = useRef<HTMLSpanElement>(null);
   const strokeGhostRef = useRef<HTMLSpanElement>(null);
+  const enterRef = useRef<HTMLAnchorElement>(null);
+  const handoffTimerRef = useRef(0);
+  const shopTransitioningRef = useRef(false);
+  const [isShopTransitioning, setIsShopTransitioning] = useState(false);
 
   useGSAP(
     (_context, contextSafe) => {
@@ -122,8 +138,8 @@ export const CampaignHero = memo(function CampaignHero() {
       const found: Record<Word, boolean> = { dont: false, blame: false, us: false };
       const mode = { current: 'discover' as PhraseMode };
       const reduced = prefersReducedMotion();
-      const mobileAutoReveal = window.innerWidth < 700;
-      const autoReveal = reduced || mobileAutoReveal || !hasFinePointer();
+      const mobileHero = isMobileHeroViewport();
+      const autoReveal = reduced || (!mobileHero && !hasFinePointer());
       const strokes = [stroke, strokeEcho, strokeGhost];
       let openingReady = false;
       let depthProgress = 0;
@@ -189,16 +205,21 @@ export const CampaignHero = memo(function CampaignHero() {
         const cta = document.querySelector<HTMLElement>('.manifesto-cta');
         const overlap = stageBox.height * (STEM_ART.overlap / PHRASE_ART.height);
         const mobile = window.innerWidth < 700;
+        if (mobile && root.dataset.shopTransitioning === 'true') return;
         let target = stageBox.bottom + window.innerHeight * (mobile ? 0.36 : 0.88);
-        if (manifestoBox) {
+        if (mobile) {
+          const heroBox = root.getBoundingClientRect();
+          target = heroBox.top + heroBox.height * 0.86;
+        } else if (manifestoBox) {
           if (cta) {
             const ctaBox = cta.getBoundingClientRect();
-            target = ctaBox.top + (mobile ? 8 : Math.min(32, ctaBox.height * 0.45));
+            target = ctaBox.top + Math.min(32, ctaBox.height * 0.45);
           } else {
-            target = manifestoBox.top + manifestoBox.height * (mobile ? 0.72 : 0.9);
+            target = manifestoBox.top + manifestoBox.height * 0.9;
           }
         }
-        const span = Math.max(160, target - (stageBox.bottom - overlap));
+        const origin = stageBox.bottom - overlap;
+        const span = Math.max(160, target - origin);
         const height = Math.round(span / 0.9);
         const px = `${height}px`;
         strokes.forEach((node) => {
@@ -322,7 +343,7 @@ export const CampaignHero = memo(function CampaignHero() {
       };
 
       const stampAt = (clientX: number, clientY: number) => {
-        if (!openingReady || mode.current !== 'discover' || autoReveal || !art) return;
+        if (!openingReady || mode.current !== 'discover' || autoReveal || mobileHero || !art) return;
         sizeBrush();
         const box = stage.getBoundingClientRect();
         const x = clientX - box.left;
@@ -371,6 +392,20 @@ export const CampaignHero = memo(function CampaignHero() {
         gsap.set(mark, { autoAlpha: 1, x: 0, y: 0, filter: 'blur(0px)' });
         resetDepth();
 
+        if (isMobileHeroViewport()) {
+          root.dataset.mobileHero = 'true';
+          setMode('discover');
+          applyFound();
+          gsap.set(layerList(), { clearProps: 'opacity,visibility,transform' });
+          gsap.set(brush, { autoAlpha: 0 });
+          gsap.set([strokeEcho, strokeGhost], { autoAlpha: 0 });
+          gsap.set(stroke, { clearProps: 'opacity,visibility,transform' });
+          layoutStroke();
+          gsap.set(mark, { autoAlpha: 0.62, filter: 'blur(0px)' });
+          routerRef.current.prefetch('/shop');
+          return;
+        }
+
         if (reduced) {
           enterFocus(false);
           return;
@@ -407,9 +442,11 @@ export const CampaignHero = memo(function CampaignHero() {
       resetDepth();
       setMode('discover');
       applyFound();
+      if (isMobileHeroViewport()) root.dataset.mobileHero = 'true';
       if (reduced) root.dataset.decode = 'done';
 
       const onPointerMove = safe((event: Event) => {
+        if (mobileHero) return;
         if (!(event instanceof PointerEvent)) return;
         queued.push({ x: event.clientX, y: event.clientY });
         if (moveRaf) return;
@@ -425,7 +462,7 @@ export const CampaignHero = memo(function CampaignHero() {
       });
 
       const onPointerDown = safe((event: Event) => {
-        if (mode.current !== 'focus') return;
+        if (mobileHero || mode.current !== 'focus') return;
         const target = event.target;
         if (!(target instanceof Node)) return;
         if (stage.contains(target)) return;
@@ -436,7 +473,7 @@ export const CampaignHero = memo(function CampaignHero() {
       root.addEventListener('pointerleave', onPointerLeave);
       document.addEventListener('pointerdown', onPointerDown);
 
-      const trigger = reduced
+      const trigger = reduced || mobileHero
         ? null
         : ScrollTrigger.create({
             trigger: root,
@@ -475,14 +512,46 @@ export const CampaignHero = memo(function CampaignHero() {
         root.removeEventListener('pointermove', onPointerMove);
         root.removeEventListener('pointerleave', onPointerLeave);
         document.removeEventListener('pointerdown', onPointerDown);
+        if (handoffTimerRef.current) window.clearTimeout(handoffTimerRef.current);
         if (moveRaf) window.cancelAnimationFrame(moveRaf);
       };
     },
     { scope: rootRef },
   );
 
+  const onEnterClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!isMobileHeroViewport()) return;
+    if (prefersReducedMotion()) return;
+    if (shopTransitioningRef.current || isShopTransitioning) {
+      event.preventDefault();
+      return;
+    }
+    if (!rootRef.current) return;
+
+    event.preventDefault();
+    shopTransitioningRef.current = true;
+    rootRef.current.dataset.mobileHero = 'true';
+    markStrokeHandoff();
+    flushSync(() => {
+      setIsShopTransitioning(true);
+    });
+
+    const unlock = () => {
+      if (!rootRef.current?.isConnected) return;
+      shopTransitioningRef.current = false;
+      setIsShopTransitioning(false);
+      clearStrokeHandoff();
+    };
+
+    window.clearTimeout(handoffTimerRef.current);
+    handoffTimerRef.current = window.setTimeout(() => {
+      router.push('/shop');
+      handoffTimerRef.current = window.setTimeout(unlock, 700);
+    }, MOBILE_NAV_MS);
+  };
+
   return (
-    <section ref={rootRef} className="campaign-hero" aria-labelledby="campaign-title">
+    <section ref={rootRef} className="campaign-hero" data-shop-transitioning={isShopTransitioning ? 'true' : undefined} aria-labelledby="campaign-title">
       <CampaignMark systemRef={markRef} />
 
       <h1 id="campaign-title" className="campaign-phrase" aria-label="dont blame us">
@@ -514,7 +583,7 @@ export const CampaignHero = memo(function CampaignHero() {
       <p className="campaign-control campaign-collection">
         <DecodedText text="COLLECTION / 001" trigger="hero" duration={DECODE_DURATION.ui} delay={0.16} />
       </p>
-      <Link className="campaign-control campaign-enter" href="/shop" aria-label="Shop now">
+      <Link ref={enterRef} className="campaign-control campaign-enter" href="/shop" aria-label="Shop now" onClick={onEnterClick}>
         <DecodedText text="SHOP NOW" trigger="hero" duration={0.36} delay={0.24} hover accessible={false} /> <span className="campaign-enter-arrow" aria-hidden="true">→</span>
       </Link>
     </section>
