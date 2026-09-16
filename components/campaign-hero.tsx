@@ -94,8 +94,6 @@ function StrokeCopy({ className, nodeRef }: { className: string; nodeRef?: Ref<H
 
 export const CampaignHero = memo(function CampaignHero() {
   const router = useRouter();
-  const routerRef = useRef(router);
-  routerRef.current = router;
   const rootRef = useRef<HTMLElement>(null);
   const markRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLSpanElement>(null);
@@ -402,7 +400,7 @@ export const CampaignHero = memo(function CampaignHero() {
           gsap.set(stroke, { clearProps: 'opacity,visibility,transform' });
           layoutStroke();
           gsap.set(mark, { autoAlpha: 0.62, filter: 'blur(0px)' });
-          routerRef.current.prefetch('/shop');
+          router.prefetch('/shop');
           return;
         }
 

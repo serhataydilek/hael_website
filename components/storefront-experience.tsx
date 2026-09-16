@@ -180,12 +180,14 @@ function OpeningScreen({ pathname }: { pathname: string }) {
 
   return (
     <div className="opening-screen" aria-hidden="true" style={{ opacity }}>
-      <img
+      <Image
         className="opening-art"
         src={LOADER_FRAMES[frameIndex]}
         alt=""
         width={651}
         height={1560}
+        priority
+        unoptimized
         draggable={false}
       />
     </div>
@@ -246,7 +248,7 @@ function CartDrawer({ lines, open, onClose, updateCart }: { lines: CartLine[]; o
             if (!product) return null;
             const style = { '--line-index': index } as CSSProperties;
             return <article className="drawer-line" style={style} key={`${line.productId}-${line.size}`}>
-              <Link className="drawer-thumb" href={`/product/${product.slug}`} onClick={onClose}><Image src={product.images[0]} alt="" fill sizes="104px" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} /></Link>
+              <Link className="drawer-thumb" href={`/product/${product.slug}`} onClick={onClose} aria-label={`View ${product.id}`}><Image src={product.images[0]} alt="" fill sizes="104px" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} /></Link>
               <div className="drawer-line-main"><p>{product.name}</p><span>{product.id} / BLACK / {line.size}</span><div className="drawer-quantity"><button aria-label={`Decrease ${product.name} quantity`} onClick={() => updateCart(line.quantity === 1 ? lines.filter((item) => item !== line) : lines.map((item) => item === line ? { ...item, quantity: item.quantity - 1 } : item))}>−</button><strong>{String(line.quantity).padStart(2, '0')}</strong><button aria-label={`Increase ${product.name} quantity`} onClick={() => updateCart(lines.map((item) => item === line ? { ...item, quantity: item.quantity + 1 } : item))}>+</button></div></div>
               <div className="drawer-line-end"><span>€{product.price * line.quantity}</span><button onClick={() => updateCart(lines.filter((item) => item !== line))}>Remove</button></div>
             </article>;
@@ -303,7 +305,11 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
   }, []);
 
   useLayoutEffect(() => {
-    setHandoff(consumeStrokeHandoff());
+    let active = true;
+    queueMicrotask(() => {
+      if (active) setHandoff(consumeStrokeHandoff());
+    });
+    return () => { active = false; };
   }, [pathname]);
 
   useEffect(() => {
@@ -318,7 +324,7 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
   return (
     <StorefrontContext.Provider value={value}>
       <OpeningScreen pathname={pathname} />
-      <div className="route-stage" data-handoff={handoff ? 'true' : undefined} key={pathname}>{children}</div>
+      <div className="route-stage" data-handoff={handoff ? 'true' : undefined} inert={isCartOpen} key={pathname}>{children}</div>
       <CartDrawer lines={lines} open={isCartOpen} onClose={closeCart} updateCart={updateCart} />
     </StorefrontContext.Provider>
   );

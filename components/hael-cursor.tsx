@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 const FINE_POINTER = '(hover: hover) and (pointer: fine)';
@@ -103,7 +104,6 @@ export function HaelCursor() {
     else void img.decode().then(onLoad).catch(onError);
 
     window.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointermove', onMove, { passive: true });
     document.documentElement.addEventListener('pointerleave', onLeave);
     window.addEventListener('blur', hide);
     document.addEventListener('visibilitychange', onVisibility);
@@ -115,7 +115,6 @@ export function HaelCursor() {
       img.removeEventListener('load', onLoad);
       img.removeEventListener('error', onError);
       window.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointermove', onMove);
       document.documentElement.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('blur', hide);
       document.removeEventListener('visibilitychange', onVisibility);
@@ -128,13 +127,14 @@ export function HaelCursor() {
 
   return (
     <div className="hael-cursor" ref={rootRef} aria-hidden="true">
-      <img
+      <Image
         ref={imgRef}
         className="hael-cursor-art"
         src={CURSOR_SRC}
         alt=""
         width={CURSOR_WIDTH}
         height={CURSOR_HEIGHT}
+        unoptimized
         draggable={false}
       />
     </div>

@@ -3,7 +3,7 @@ export type Size = (typeof sizes)[number];
 
 export type Product = {
   id: string; name: string; slug: string; price: number; images: readonly [string, ...string[]];
-  description: string; material: string; fit: string; gsm: number; sizes: readonly Size[];
+  description: string; material: string; fit: string; gsm: number; sizes: readonly Size[]; unavailableSizes?: readonly Size[];
 };
 
 // TEMPORARY Drop 001 catalog records.

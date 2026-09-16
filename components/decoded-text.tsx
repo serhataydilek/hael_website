@@ -121,6 +121,7 @@ export function DecodedText({
       className={className}
       aria-label={accessible ? ariaLabel ?? text : undefined}
     >
+      {accessible ? <span className="visually-hidden">{ariaLabel ?? text}</span> : null}
       <span className="decoded-final" aria-hidden="true">
         {text}
       </span>

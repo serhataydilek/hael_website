@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import './globals.css';
 import { WebMcpCartTools } from '@/components/webmcp-cart-tools';
@@ -7,9 +7,15 @@ import { HaelCursor } from '@/components/hael-cursor';
 import { buildLoaderBootScript } from '@/lib/loader-session';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://hael.studio'),
   title: { default: 'HAEL — Drop 001', template: '%s — HAEL' },
-  description: 'HAEL Drop 001. Black garments, altered surfaces, and afterimages.',
+  description: 'HAEL Drop 001 collection.',
+  icons: { icon: '/brand/hael-footer-mark-soft.png' },
+  openGraph: { title: 'HAEL — Drop 001', description: 'HAEL Drop 001 collection.', images: [{ url: '/hael-campaign-01.png' }] },
+  twitter: { card: 'summary_large_image', title: 'HAEL — Drop 001', description: 'HAEL Drop 001 collection.', images: ['/hael-campaign-01.png'] },
 };
+
+export const viewport: Viewport = { themeColor: '#171717' };
 
 const HAEL_LOADER_BOOT = buildLoaderBootScript();
 
