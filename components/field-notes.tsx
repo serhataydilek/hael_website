@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { memo, useRef } from 'react';
 import gsap from 'gsap';
@@ -210,6 +211,19 @@ export const FieldNotes = memo(function FieldNotes() {
 
   return (
     <section ref={rootRef} className="manifesto page-shell" aria-label="HAEL field notes">
+      <div className="manifesto-field" aria-hidden="true">
+        <div className="manifesto-field-wash" />
+        <div className="manifesto-field-trace">
+          <Image
+            src="/brand/manifesto-silhouette.png"
+            alt=""
+            fill
+            sizes="(max-width: 800px) 90vw, 58vw"
+            unoptimized
+          />
+        </div>
+        <div className="manifesto-field-grain" />
+      </div>
       <PrintField className="manifesto-kicker" text={LABEL} variant="label" />
       <PrintField className="manifesto-meta manifesto-meta-a" text={META_A} variant="meta" />
       <p className="manifesto-a" aria-label={BODY_LINES.join(' ')} data-print="body">
