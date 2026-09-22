@@ -1,106 +1,269 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { DecodedText } from '@/components/decoded-text';
-import type { Product } from '@/lib/products';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ProductTile } from '@/components/product-tile';
+import { sizes, type Product, type Size } from '@/lib/products';
 
-type SortOption = 'featured' | 'price-low' | 'price-high' | 'name';
+type SortOption = 'latest' | 'price-low' | 'price-high';
 
-function getFit(product: Product) {
-  return product.fit.split('/')[0].trim();
-}
+const SORT_LABELS: Record<SortOption, string> = {
+  latest: 'Latest',
+  'price-low': 'Price low → high',
+  'price-high': 'Price high → low',
+};
 
-function getWeight(product: Product) {
-  if (product.gsm < 250) return 'Light';
-  if (product.gsm < 290) return 'Medium';
-  return 'Heavy';
+const PLACEHOLDER_SLOTS = 3;
+
+function productHasSize(product: Product, size: Size) {
+  return (
+    product.sizes.includes(size) && !product.unavailableSizes?.includes(size)
+  );
 }
 
 export function ShopCatalog({ products }: { products: Product[] }) {
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<SortOption>('featured');
-  const [fit, setFit] = useState('all');
-  const [weight, setWeight] = useState('all');
-  const [size, setSize] = useState('all');
+  const [sort, setSort] = useState<SortOption>('latest');
+  const [fits, setFits] = useState<string[]>([]);
+  const [sizeFilters, setSizeFilters] = useState<Size[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const toolsRef = useRef<HTMLDivElement>(null);
 
-  const fitOptions = useMemo(() => Array.from(new Set(products.map(getFit))).sort(), [products]);
-  const sizeOptions = useMemo(() => Array.from(new Set(products.flatMap((product) => product.sizes))), [products]);
+  const fitOptions = useMemo(
+    () => [...new Set(products.map((product) => product.fit))],
+    [products],
+  );
 
-  const visibleProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const matches = products.filter((product) => {
-      const searchable = `${product.name} ${product.id} ${product.description} ${product.fit} ${product.material}`.toLowerCase();
+  const visible = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const filtered = products.filter((product) => {
+      if (fits.length && !fits.includes(product.fit)) return false;
+      if (
+        sizeFilters.length &&
+        !sizeFilters.some((size) => productHasSize(product, size))
+      ) {
+        return false;
+      }
+      if (!needle) return true;
       return (
-        (!normalizedQuery || searchable.includes(normalizedQuery)) &&
-        (fit === 'all' || getFit(product) === fit) &&
-        (weight === 'all' || getWeight(product) === weight) &&
-        (size === 'all' || product.sizes.includes(size as (typeof product.sizes)[number]))
+        product.name.toLowerCase().includes(needle) ||
+        product.id.toLowerCase().includes(needle) ||
+        product.description.toLowerCase().includes(needle)
       );
     });
-
-    return [...matches].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       if (sort === 'price-low') return a.price - b.price;
       if (sort === 'price-high') return b.price - a.price;
-      if (sort === 'name') return a.name.localeCompare(b.name);
       return products.indexOf(a) - products.indexOf(b);
     });
-  }, [fit, products, query, size, sort, weight]);
+  }, [fits, products, query, sizeFilters, sort]);
 
-  const hasFilters = Boolean(query || fit !== 'all' || weight !== 'all' || size !== 'all');
-  const resetFilters = () => {
-    setQuery('');
-    setFit('all');
-    setWeight('all');
-    setSize('all');
+  const filterActive = fits.length + sizeFilters.length > 0;
+  const showPlaceholders =
+    !query.trim() && !filterActive && visible.length === products.length;
+
+  useEffect(() => {
+    if (!filterOpen && !sortOpen) return;
+    const onPointer = (event: PointerEvent) => {
+      if (!toolsRef.current?.contains(event.target as Node)) {
+        setFilterOpen(false);
+        setSortOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setFilterOpen(false);
+        setSortOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', onPointer);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerdown', onPointer);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [filterOpen, sortOpen]);
+
+  const toggleFit = (fit: string) => {
+    setFits((current) =>
+      current.includes(fit)
+        ? current.filter((value) => value !== fit)
+        : [...current, fit],
+    );
+  };
+
+  const toggleSize = (size: Size) => {
+    setSizeFilters((current) =>
+      current.includes(size)
+        ? current.filter((value) => value !== size)
+        : [...current, size],
+    );
   };
 
   return (
-    <>
-      <section className="catalog-tools page-shell" aria-label="Search, sort, and filter products">
-        <label className="catalog-search">
-          <span>Search</span>
+    <div className="shop-page">
+      <div className="shop-tools" ref={toolsRef}>
+        <h1>
+          Drop 001 <span>({products.length})</span>
+        </h1>
+
+        <label className="shop-search">
+          <span className="visually-hidden">Search Drop 001</span>
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Name, code, or detail"
+            placeholder="Search"
+            autoComplete="off"
+            spellCheck={false}
           />
+          <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14">
+            <circle
+              cx="7"
+              cy="7"
+              r="4.25"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.2"
+            />
+            <path
+              d="M10.2 10.2 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.2"
+            />
+          </svg>
         </label>
 
-        <div className="catalog-selects">
-          <label><span>Sort</span><select value={sort} onChange={(event) => setSort(event.target.value as SortOption)}><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="name">Name: A–Z</option></select></label>
-          <label><span>Fit</span><select value={fit} onChange={(event) => setFit(event.target.value)}><option value="all">All fits</option>{fitOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
-          <label><span>Weight</span><select value={weight} onChange={(event) => setWeight(event.target.value)}><option value="all">All weights</option><option value="Light">Light · under 250 GSM</option><option value="Medium">Medium · 250–289 GSM</option><option value="Heavy">Heavy · 290+ GSM</option></select></label>
-          <label><span>Size</span><select value={size} onChange={(event) => setSize(event.target.value)}><option value="all">All sizes</option>{sizeOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+        <div className="shop-views">
+          <p>
+            {visible.length} {visible.length === 1 ? 'result' : 'results'}
+          </p>
+          <button
+            type="button"
+            className="shop-filter-trigger"
+            aria-expanded={filterOpen}
+            aria-controls="shop-filter-panel"
+            onClick={() => {
+              setFilterOpen((open) => !open);
+              setSortOpen(false);
+            }}
+          >
+            Filter
+            <i aria-hidden="true" />
+          </button>
         </div>
 
-        <div className="catalog-status" aria-live="polite">
-          <span>{visibleProducts.length} results</span>
-          {hasFilters && <button type="button" onClick={resetFilters}>Clear filters</button>}
-        </div>
-      </section>
-
-      {visibleProducts.length > 0 ? (
-        <section className="catalog page-shell" aria-label="HAEL Drop 001 products">
-          {visibleProducts.map((product, index) => (
-            <Link className={`catalog-item catalog-item-${index % 4}`} href={`/product/${product.slug}`} key={product.id}>
-              <div className="catalog-image">
-                <Image className="catalog-primary" src={product.images[0]} alt={`${product.name} flat-lay product view`} fill sizes="(max-width: 800px) 50vw, 25vw" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} />
-                {product.images[1] && <Image className="catalog-alternate" src={product.images[1]} alt={`${product.name} alternate view`} fill sizes="(max-width: 800px) 50vw, 25vw" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} />}
-                <DecodedText text={`NO. ${String(index + 1).padStart(2, '0')}`} trigger="inView" duration={0.3} decodeId={`shop-no-${product.id}`} />
+        {filterOpen ? (
+          <div className="shop-filter" id="shop-filter-panel">
+            <div className="shop-filter-head">
+              <p>Filter</p>
+              <button type="button" onClick={() => setFilterOpen(false)}>
+                Close
+              </button>
+            </div>
+            <fieldset>
+              <legend>Fit</legend>
+              {fitOptions.map((fit) => (
+                <label key={fit}>
+                  <input
+                    type="checkbox"
+                    checked={fits.includes(fit)}
+                    onChange={() => toggleFit(fit)}
+                  />
+                  <span>{fit}</span>
+                </label>
+              ))}
+            </fieldset>
+            <fieldset>
+              <legend>Size</legend>
+              <div className="shop-filter-sizes">
+                {sizes.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    aria-pressed={sizeFilters.includes(size)}
+                    onClick={() => toggleSize(size)}
+                  >
+                    {size}
+                  </button>
+                ))}
               </div>
-              <div className="catalog-info"><p><strong>{product.name}</strong><span>{product.id}</span></p><span>€{product.price}</span></div>
-            </Link>
-          ))}
-        </section>
-      ) : (
-        <section className="catalog-empty page-shell">
-          <p>No objects match this selection.</p>
-          <button type="button" onClick={resetFilters}>Reset search and filters</button>
-        </section>
-      )}
-    </>
+            </fieldset>
+            {filterActive ? (
+              <button
+                type="button"
+                className="shop-filter-clear"
+                onClick={() => {
+                  setFits([]);
+                  setSizeFilters([]);
+                }}
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="shop-sort">
+          <button
+            type="button"
+            aria-expanded={sortOpen}
+            onClick={() => {
+              setSortOpen((open) => !open);
+              setFilterOpen(false);
+            }}
+          >
+            Sort by: {SORT_LABELS[sort]}
+          </button>
+          {sortOpen ? (
+            <div className="shop-sort-menu">
+              {(Object.keys(SORT_LABELS) as SortOption[]).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={sort === value}
+                  onClick={() => {
+                    setSort(value);
+                    setSortOpen(false);
+                  }}
+                >
+                  {SORT_LABELS[value]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <section className="shop-grid" aria-label="Drop 001 products">
+        {visible.length ? (
+          <>
+            {visible.map((product) => (
+              <ProductTile
+                key={product.id}
+                product={product}
+                sizes="(max-width: 767px) 46vw, (max-width: 1279px) 30vw, 23vw"
+              />
+            ))}
+            {showPlaceholders
+              ? Array.from({ length: PLACEHOLDER_SLOTS }, (_, index) => (
+                  <div
+                    key={`placeholder-${index}`}
+                    className="shop-placeholder"
+                    aria-hidden="true"
+                  >
+                    <span>Coming soon</span>
+                    <strong>HAEL</strong>
+                    <span>Drop 001</span>
+                  </div>
+                ))
+              : null}
+          </>
+        ) : (
+          <p className="shop-empty">No results.</p>
+        )}
+      </section>
+    </div>
   );
 }

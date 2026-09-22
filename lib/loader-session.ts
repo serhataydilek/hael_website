@@ -15,8 +15,10 @@ export function decideLoaderMode(): 'play' | 'skip' {
   }
   if (typeof window === 'undefined') return 'play';
   try {
-    if (new URLSearchParams(window.location.search).get('loader') === '1') return 'play';
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'skip';
+    if (new URLSearchParams(window.location.search).get('loader') === '1')
+      return 'play';
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      return 'skip';
   } catch {
     return 'play';
   }

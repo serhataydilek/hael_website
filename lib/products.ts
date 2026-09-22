@@ -2,8 +2,17 @@ export const sizes = ['S', 'M', 'L', 'XL'] as const;
 export type Size = (typeof sizes)[number];
 
 export type Product = {
-  id: string; name: string; slug: string; price: number; images: readonly [string, ...string[]];
-  description: string; material: string; fit: string; gsm: number; sizes: readonly Size[]; unavailableSizes?: readonly Size[];
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  images: readonly [string, ...string[]];
+  description: string;
+  material: string;
+  fit: string;
+  gsm: number;
+  sizes: readonly Size[];
+  unavailableSizes?: readonly Size[];
 };
 
 // TEMPORARY Drop 001 catalog records.
@@ -64,5 +73,14 @@ export const products: Product[] = [
   },
 ];
 
-export function getProduct(slug: string) { return products.find((product) => product.slug === slug); }
-export function getProductById(id: string) { return products.find((product) => product.id === id); }
+export function getProduct(slug: string) {
+  return products.find((product) => product.slug === slug);
+}
+
+export function getProductById(id: string) {
+  return products.find((product) => product.id === id);
+}
+
+export function getRelatedProducts(slug: string, limit = 3) {
+  return products.filter((product) => product.slug !== slug).slice(0, limit);
+}

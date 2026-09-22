@@ -1,26 +1,70 @@
-import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { DecodedText } from '@/components/decoded-text';
+import { ProductGallery } from '@/components/product-gallery';
+import { ProductInfo } from '@/components/product-info';
 import { ProductPurchase } from '@/components/product-purchase';
-import { SiteHeader } from '@/components/site-header';
-import { getProduct, products } from '@/lib/products';
+import { ProductTile } from '@/components/product-tile';
+import { SiteFooter } from '@/components/site-footer';
+import { getProduct, getRelatedProducts, products } from '@/lib/products';
 
-export function generateStaticParams() { return products.map((product) => ({ slug: product.slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const product = getProduct((await params).slug);
-  return { title: product?.name ?? 'Product', description: product?.description };
+export function generateStaticParams() {
+  return products.map((product) => ({ slug: product.slug }));
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const product = getProduct((await params).slug);
+  return {
+    title: product?.name ?? 'Product',
+    description: product?.description,
+  };
+}
+
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const product = getProduct((await params).slug);
   if (!product) notFound();
-  return <main><SiteHeader /><div className="product-layout">
-    <section className="product-gallery" aria-label={`${product.name} images`}>
-      {product.images.map((source, index) => <figure key={source}><Image src={source} alt={`${product.id} ${index === 0 ? 'front' : `view ${index + 1}`}`} fill priority={index === 0} sizes="(max-width: 900px) 100vw, 66vw" unoptimized style={{ objectFit: 'contain', objectPosition: 'center' }} /><span>VIEW / 0{index + 1}</span></figure>)}
-    </section>
-    <aside className="product-panel"><div className="product-code"><DecodedText text={product.id} trigger="inView" duration={0.34} decodeId={`product-id-${product.id}`} /><DecodedText text="COL / 001" trigger="inView" duration={0.36} delay={0.05} decodeId="product-col" /></div><h1><DecodedText text={product.name} trigger="inView" duration={0.52} decodeId={`product-name-${product.id}`} /></h1><p className="product-description">{product.description}</p>
-      <dl><div><dt><DecodedText text="MATERIAL" trigger="inView" duration={0.3} decodeId="dt-material" /></dt><dd>{product.material}</dd></div><div><dt><DecodedText text="WEIGHT" trigger="inView" duration={0.3} decodeId="dt-weight" /></dt><dd>{product.gsm} GSM</dd></div><div><dt><DecodedText text="FIT" trigger="inView" duration={0.28} decodeId="dt-fit" /></dt><dd>{product.fit}</dd></div><div><dt><DecodedText text="ORIGIN" trigger="inView" duration={0.3} decodeId="dt-origin" /></dt><dd>Made in Türkiye</dd></div></dl>
-      <ProductPurchase product={product} unavailableSizes={product.unavailableSizes} /><p className="care-note">Cold wash / dry flat / wear repeatedly</p>
-    </aside>
-  </div></main>;
+  const related = getRelatedProducts(product.slug);
+
+  return (
+    <main>
+      <div className="pdp-grid">
+        <ProductGallery product={product} />
+        <aside className="pdp-copy">
+          <Link className="pdp-back" href="/shop">
+            Drop 001
+          </Link>
+          <h1>{product.name}</h1>
+          <p>{product.description}</p>
+          <ProductInfo product={product} />
+        </aside>
+        <ProductPurchase
+          product={product}
+          unavailableSizes={product.unavailableSizes}
+        />
+      </div>
+      {related.length ? (
+        <section className="pdp-related" aria-label="Also in Drop 001">
+          <h2>Also in Drop 001</h2>
+          <ul className="merch-grid">
+            {related.map((item) => (
+              <li key={item.id}>
+                <ProductTile
+                  product={item}
+                  sizes="(max-width: 1099px) 46vw, 22vw"
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      <SiteFooter />
+    </main>
+  );
 }

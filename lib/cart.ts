@@ -21,7 +21,9 @@ export function readCart(): CartLine[] {
     const value = JSON.parse(localStorage.getItem(CART_KEY) ?? '[]');
     // Drop stale placeholder product IDs instead of crashing during catalog swaps.
     return Array.isArray(value) ? value.filter(isCartLine) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export function writeCart(lines: CartLine[]) {
@@ -31,7 +33,9 @@ export function writeCart(lines: CartLine[]) {
 
 export function addCartLine(productId: string, size: Size, quantity = 1) {
   const lines = readCart();
-  const existing = lines.find((line) => line.productId === productId && line.size === size);
+  const existing = lines.find(
+    (line) => line.productId === productId && line.size === size,
+  );
   if (existing) existing.quantity += quantity;
   else lines.push({ productId, size, quantity });
   writeCart(lines);
