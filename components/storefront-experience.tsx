@@ -15,12 +15,9 @@ type StorefrontContextValue = {
   lines: CartLine[];
   ready: boolean;
   isCartOpen: boolean;
-  isMenuOpen: boolean;
   count: number;
   openCart: () => void;
   closeCart: () => void;
-  openMenu: () => void;
-  closeMenu: () => void;
   addItem: (productId: string, size: Size) => void;
   updateCart: (lines: CartLine[]) => void;
 };
@@ -38,19 +35,10 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [ready, setReady] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
-  const [isMenuOpen, setMenuOpen] = useState(false);
 
   const refresh = useCallback(() => setLines(readCart()), []);
   const closeCart = useCallback(() => setCartOpen(false), []);
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const openCart = useCallback(() => {
-    setMenuOpen(false);
-    setCartOpen(true);
-  }, []);
-  const openMenu = useCallback(() => {
-    setCartOpen(false);
-    setMenuOpen(true);
-  }, []);
+  const openCart = useCallback(() => setCartOpen(true), []);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -75,7 +63,6 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
   const addItem = useCallback((productId: string, size: Size) => {
     const next = addCartLine(productId, size);
     setLines(next);
-    setMenuOpen(false);
     setCartOpen(true);
   }, []);
 
@@ -86,12 +73,9 @@ export function StorefrontExperience({ children }: { children: ReactNode }) {
         lines,
         ready,
         isCartOpen,
-        isMenuOpen,
         count,
         openCart,
         closeCart,
-        openMenu,
-        closeMenu,
         addItem,
         updateCart,
       }}

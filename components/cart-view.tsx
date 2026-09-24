@@ -110,8 +110,8 @@ export function CartView() {
               <strong>€{total}</strong>
             </div>
             <p>Taxes included. Delivery calculated in the next phase.</p>
-            <button type="button" disabled>
-              Checkout
+            <button type="button" disabled title="Checkout coming soon">
+              Checkout coming soon
             </button>
           </aside>
         </div>

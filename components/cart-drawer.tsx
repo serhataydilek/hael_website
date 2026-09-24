@@ -196,8 +196,8 @@ export function CartDrawer({
             <Link href="/cart" onClick={go('/cart')}>
               View bag
             </Link>
-            <button type="button" disabled>
-              Checkout
+            <button type="button" disabled title="Checkout coming soon">
+              Checkout coming soon
             </button>
           </div>
         </footer>

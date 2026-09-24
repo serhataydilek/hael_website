@@ -2,114 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const SCENES = [
-  {
-    src: '/hero/review/hero-art-01.webp',
-    x: '58%',
-    y: '14%',
-    scale: 1.06,
-    opacity: 0.45,
-  },
-  {
-    src: '/hero/review/hero-art-02.webp',
-    x: '70%',
-    y: '15%',
-    scale: 1.07,
-    opacity: 0.42,
-  },
-  {
-    src: '/hero/review/hero-art-03.webp',
-    x: '66%',
-    y: '14%',
-    scale: 1.07,
-    opacity: 0.42,
-  },
-  {
-    src: '/hero/review/hero-art-04.webp',
-    x: '64%',
-    y: '13%',
-    scale: 1.12,
-    opacity: 0.44,
-  },
-  {
-    src: '/hero/review/hero-art-05.webp',
-    x: '70%',
-    y: '14%',
-    scale: 1.06,
-    opacity: 0.4,
-  },
-  {
-    src: '/hero/review/hero-art-06.webp',
-    x: '70%',
-    y: '14%',
-    scale: 1.1,
-    opacity: 0.4,
-  },
-  {
-    src: '/hero/review/hero-art-07.webp',
-    x: '64%',
-    y: '13%',
-    scale: 1.06,
-    opacity: 0.38,
-  },
-  {
-    src: '/hero/review/hero-art-08.webp',
-    x: '70%',
-    y: '14%',
-    scale: 1.07,
-    opacity: 0.4,
-  },
-  {
-    src: '/hero/review/hero-art-09.webp',
-    x: '66%',
-    y: '13%',
-    scale: 1.06,
-    opacity: 0.4,
-  },
-  {
-    src: '/hero/review/hero-art-10.webp',
-    x: '70%',
-    y: '14%',
-    scale: 1.08,
-    opacity: 0.42,
-  },
-  {
-    src: '/hero/review/hero-art-11.webp',
-    x: '66%',
-    y: '14%',
-    scale: 1.06,
-    opacity: 0.38,
-  },
-  {
-    src: '/hero/review/hero-art-12.webp',
-    x: '64%',
-    y: '13%',
-    scale: 1.05,
-    opacity: 0.38,
-  },
-  {
-    src: '/hero/review/hero-art-13.webp',
-    x: '68%',
-    y: '14%',
-    scale: 1.08,
-    opacity: 0.4,
-  },
-  {
-    src: '/hero/review/hero-art-14.webp',
-    x: '66%',
-    y: '13%',
-    scale: 1.06,
-    opacity: 0.38,
-  },
-  {
-    src: '/hero/review/hero-art-15.webp',
-    x: '70%',
-    y: '13%',
-    scale: 1.07,
-    opacity: 0.38,
-  },
+  '/hero/carousel/hero-01.png',
+  '/hero/carousel/hero-02.png',
+  '/hero/carousel/hero-03.png',
+  '/hero/carousel/hero-04.png',
+  '/hero/carousel/hero-05.png',
 ] as const;
 
 const SCENE_MS = 3600;
@@ -117,6 +17,9 @@ const SCENE_MS = 3600;
 export function HomeHero() {
   const stageRef = useRef<HTMLDivElement>(null);
   const [activeScene, setActiveScene] = useState(0);
+  const [mountedScenes, setMountedScenes] = useState<ReadonlySet<number>>(
+    () => new Set([0, 1]),
+  );
   const [reviewMode, setReviewMode] = useState(false);
 
   useEffect(() => {
@@ -125,6 +28,7 @@ export function HomeHero() {
 
     let scrollFrame = 0;
     let sceneTimer = 0;
+    let cleanupTimer = 0;
     let scene = 0;
     let dragging = false;
     let dragOrigin = 0;
@@ -157,16 +61,36 @@ export function HomeHero() {
       setActiveScene(next);
     };
     const cycle = () => {
-      setScene((scene + 1) % SCENES.length);
+      const previous = scene;
+      const next = (scene + 1) % SCENES.length;
+      const upcoming = (next + 1) % SCENES.length;
+      setMountedScenes((current) => new Set([...current, next, upcoming]));
+      setScene(next);
+      if (cleanupTimer) window.clearTimeout(cleanupTimer);
+      cleanupTimer = window.setTimeout(() => {
+        setMountedScenes((current) => {
+          const retained = new Set(current);
+          retained.delete(previous);
+          return retained;
+        });
+      }, 750);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        setScene((scene - 1 + SCENES.length) % SCENES.length);
+        const next = (scene - 1 + SCENES.length) % SCENES.length;
+        setMountedScenes(
+          (current) => new Set([...current, next, (next + 1) % SCENES.length]),
+        );
+        setScene(next);
       }
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        setScene((scene + 1) % SCENES.length);
+        const next = (scene + 1) % SCENES.length;
+        setMountedScenes(
+          (current) => new Set([...current, next, (next + 1) % SCENES.length]),
+        );
+        setScene(next);
       }
     };
     const onPointerDown = (event: PointerEvent) => {
@@ -221,6 +145,7 @@ export function HomeHero() {
       window.removeEventListener('keydown', onKeyDown);
       if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       if (sceneTimer) window.clearInterval(sceneTimer);
+      if (cleanupTimer) window.clearTimeout(cleanupTimer);
     };
   }, []);
 
@@ -234,30 +159,24 @@ export function HomeHero() {
         data-hero-review={reviewMode}
       >
         <div className="hero-scenes" aria-hidden="true">
-          {SCENES.map((art, index) => (
-            <div
-              key={art.src}
-              className="hero-scene hero-art-scene"
-              data-active={activeScene === index}
-              style={
-                {
-                  '--hero-art-x': art.x,
-                  '--hero-art-y': art.y,
-                  '--hero-art-scale': art.scale,
-                  '--hero-art-opacity': art.opacity,
-                } as CSSProperties
-              }
-            >
-              <Image
-                src={art.src}
-                alt=""
-                fill
-                priority={index === 0}
-                sizes="100vw"
-              />
-            </div>
-          ))}
-          <div className="hero-scene-veil" />
+          {SCENES.map((art, index) =>
+            mountedScenes.has(index) ? (
+              <div
+                key={art}
+                className="hero-scene hero-art-scene"
+                data-active={activeScene === index}
+              >
+                <Image
+                  src={art}
+                  alt=""
+                  fill
+                  priority={index === 0}
+                  loading={index === 0 ? undefined : 'eager'}
+                  sizes="100vw"
+                />
+              </div>
+            ) : null,
+          )}
         </div>
         <div className="hero-logo-viewport" aria-hidden="true">
           <div className="hero-logo-track">

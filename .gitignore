@@ -10,6 +10,7 @@
 
 # testing
 /coverage
+/qa/edge-cdp-profile/
 
 # next.js
 /.next/

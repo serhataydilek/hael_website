@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 
 const ROWS = [
   ['S', '58', '69', '53', '22'],
@@ -16,30 +16,65 @@ export function SizeGuide({
   open: boolean;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const prior = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (!open) {
+      if (dialog.open) dialog.close();
+      return;
+    }
+
     prior.current = document.activeElement as HTMLElement | null;
+    const bodyOverflow = document.body.style.overflow;
+    const rootOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    dialog.showModal();
     closeRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
+
     return () => {
-      window.removeEventListener('keydown', onKey);
-      prior.current?.focus();
+      if (dialog.open) dialog.close();
+      document.body.style.overflow = bodyOverflow;
+      document.documentElement.style.overflow = rootOverflow;
+      prior.current?.focus?.();
     };
   }, [onClose, open]);
+
+  const trapFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   return (
     <dialog
       className="size-guide-dialog"
-      open={open}
-      aria-modal={open || undefined}
+      ref={dialogRef}
+      aria-modal="true"
       aria-labelledby="size-guide-title"
-      inert={!open}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onKeyDown={trapFocus}
     >
       <button
         className="size-guide-close"
