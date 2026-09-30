@@ -10,40 +10,28 @@ import {
 } from 'react';
 import { decideLoaderMode } from '@/lib/loader-session';
 
-const LOADER_FRAMES = [
-  '/animations/hael-loader/frame-00.webp',
-  '/animations/hael-loader/frame-01.webp',
-  '/animations/hael-loader/frame-02.webp',
-  '/animations/hael-loader/frame-03.webp',
-  '/animations/hael-loader/frame-04.webp',
-  '/animations/hael-loader/frame-05.webp',
-  '/animations/hael-loader/frame-06.webp',
-] as const;
-const FRAME_DURATION = 120;
-const FRAME_COUNT = LOADER_FRAMES.length;
-const FRAME_LAST = FRAME_COUNT - 1;
-const TOTAL_DURATION = FRAME_DURATION * FRAME_COUNT;
-const FADE_START = 720;
+const LOADER_ASSET = '/animations/hael-loader/hael-loader-start.png';
+const CYCLE_DURATION = 600;
+const FADE_DURATION = 150;
+const TOTAL_DURATION = CYCLE_DURATION + FADE_DURATION;
+const FADE_START = CYCLE_DURATION;
+const REDUCED_TOTAL_DURATION = 300;
+const REDUCED_FADE_START = 150;
 
 let loaderPlayedThisDocument = false;
 
-function preloadLoaderFrames() {
-  return Promise.all(
-    LOADER_FRAMES.map((src) => {
-      const image = new window.Image();
-      image.src = src;
-      if (image.decode) return image.decode();
-      return new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve();
-        image.onerror = () => reject(new Error(src));
-      });
-    }),
-  );
+function preloadLoaderAssets() {
+  const image = new window.Image();
+  image.src = LOADER_ASSET;
+  if (image.decode) return image.decode();
+  return new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () => reject(new Error(LOADER_ASSET));
+  });
 }
 
 function lockLoaderScroll() {
   const root = document.documentElement;
-  root.dataset.haelLoaderMode = 'play';
   root.dataset.haelLoaderActive = 'true';
   root.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
@@ -58,15 +46,15 @@ function unlockLoaderScroll() {
 
 export function OpeningScreen({ pathname }: { pathname: string }) {
   const [gone, setGone] = useState(false);
-  const [frameIndex, setFrameIndex] = useState(0);
   const [opacity, setOpacity] = useState(1);
-  const [clockReady, setClockReady] = useState(false);
+  const [assetsReady, setAssetsReady] = useState(false);
   const resolved = useRef(false);
   const entryPathname = useRef(pathname);
   const finished = useRef(false);
   const rafRef = useRef(0);
   const startedAt = useRef(0);
-  const frameIndexRef = useRef(0);
+  const totalDuration = useRef(TOTAL_DURATION);
+  const fadeStart = useRef(FADE_START);
 
   const finish = useCallback(() => {
     if (finished.current) return;
@@ -88,22 +76,26 @@ export function OpeningScreen({ pathname }: { pathname: string }) {
     }
     resolved.current = true;
 
-    if (loaderPlayedThisDocument || decideLoaderMode() === 'skip') {
+    const mode = decideLoaderMode();
+    if (loaderPlayedThisDocument || mode === 'skip') {
       finish();
       return;
+    }
+
+    if (mode === 'reduce') {
+      totalDuration.current = REDUCED_TOTAL_DURATION;
+      fadeStart.current = REDUCED_FADE_START;
     }
 
     lockLoaderScroll();
 
     let cancelled = false;
-    void preloadLoaderFrames()
+    void preloadLoaderAssets()
       .then(() => {
         if (cancelled || finished.current) return;
         startedAt.current = performance.now();
-        frameIndexRef.current = 0;
-        setFrameIndex(0);
         setOpacity(1);
-        setClockReady(true);
+        setAssetsReady(true);
       })
       .catch(() => {
         if (!cancelled) finish();
@@ -115,25 +107,22 @@ export function OpeningScreen({ pathname }: { pathname: string }) {
   }, [finish, pathname]);
 
   useEffect(() => {
-    if (!clockReady) return;
+    if (!assetsReady) return;
 
     const tick = (now: number) => {
       if (finished.current) return;
       const elapsed = now - startedAt.current;
-      const nextFrame = Math.min(
-        Math.floor(elapsed / FRAME_DURATION),
-        FRAME_LAST,
-      );
-      if (nextFrame !== frameIndexRef.current) {
-        frameIndexRef.current = nextFrame;
-        setFrameIndex(nextFrame);
-      }
       setOpacity(
-        elapsed < FADE_START
+        elapsed < fadeStart.current
           ? 1
-          : Math.max(0, 1 - (elapsed - FADE_START) / FRAME_DURATION),
+          : Math.max(
+              0,
+              1 -
+                (elapsed - fadeStart.current) /
+                  (totalDuration.current - fadeStart.current),
+            ),
       );
-      if (elapsed >= TOTAL_DURATION) {
+      if (elapsed >= totalDuration.current) {
         finish();
         return;
       }
@@ -145,7 +134,7 @@ export function OpeningScreen({ pathname }: { pathname: string }) {
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
     };
-  }, [clockReady, finish]);
+  }, [assetsReady, finish]);
 
   useEffect(
     () => () => {
@@ -158,17 +147,23 @@ export function OpeningScreen({ pathname }: { pathname: string }) {
   if (gone) return null;
 
   return (
-    <div className="opening-screen" aria-hidden="true" style={{ opacity }}>
-      <Image
-        className="opening-art"
-        src={LOADER_FRAMES[frameIndex] ?? LOADER_FRAMES[0]}
-        alt=""
-        width={651}
-        height={1560}
-        priority
-        unoptimized
-        draggable={false}
-      />
+    <div
+      className={`opening-screen${assetsReady ? ' is-ready' : ''}`}
+      aria-hidden="true"
+      style={{ opacity }}
+    >
+      <div className="opening-mark-shell">
+        <Image
+          className="opening-start-graphic"
+          src={LOADER_ASSET}
+          alt=""
+          width={1500}
+          height={1047}
+          priority
+          unoptimized
+          draggable={false}
+        />
+      </div>
     </div>
   );
 }

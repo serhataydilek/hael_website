@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://hael.studio'),
   title: { default: 'HAEL — Drop 001', template: '%s — HAEL' },
   description: 'HAEL Drop 001 collection.',
-  icons: { icon: '/brand/hael-footer-mark-soft.png' },
+  icons: { icon: '/brand/hael-primary.png' },
   openGraph: {
     title: 'HAEL — Drop 001',
     description: 'HAEL Drop 001 collection.',

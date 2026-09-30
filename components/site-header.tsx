@@ -13,10 +13,10 @@ export function SiteHeader() {
       <Link className="brand-lockup" href="/" aria-label="HAEL home">
         <span className="hael-mark" aria-hidden="true">
           <Image
-            src="/brand/hael-footer-mark-soft.png"
+            src="/brand/hael-primary.png"
             alt=""
-            width={720}
-            height={720}
+            width={624}
+            height={719}
             priority
             unoptimized
           />

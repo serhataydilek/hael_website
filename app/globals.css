@@ -117,7 +117,7 @@ button:focus-visible {
 .site-header {
   position: fixed;
   top: 0;
-  left: 0;
+  left: -24px;
   z-index: 40;
   width: 100%;
   height: var(--nav-h);
@@ -153,14 +153,12 @@ button:focus-visible {
 }
 .hael-mark {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 23px;
 }
 .hael-mark img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
 }
 
 /* CART */
@@ -431,7 +429,7 @@ button:focus-visible {
   position: absolute;
   z-index: 4;
   top: 100%;
-  left: 0;
+  left: -72px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1614,8 +1612,7 @@ button:focus-visible {
 }
 .footer-mark-link {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 42px;
   margin-top: 0;
   transition: opacity 250ms ease;
 }
@@ -1647,8 +1644,7 @@ button:focus-visible {
 .footer-mark-link img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
 }
 .footer-divider {
   display: none;
@@ -1660,7 +1656,8 @@ button:focus-visible {
 }
 .footer-monolith-wordmark {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   height: 100%;
   padding: 14px 18px 0;
@@ -1668,14 +1665,17 @@ button:focus-visible {
 }
 .footer-monolith-wordmark img {
   display: block;
-  width: 100%;
-  height: auto;
+  width: auto;
+  height: 100%;
   max-height: 100%;
   object-fit: contain;
-  object-position: left bottom;
+  object-position: center;
 }
 
 @media (max-width: 800px) {
+  .hael-mark {
+    width: 21px;
+  }
   .hero-wordmark {
     top: 13vh;
     left: -5vw;
@@ -1745,8 +1745,7 @@ button:focus-visible {
     align-items: center;
   }
   .footer-mark-link {
-    width: 52px;
-    height: 52px;
+    width: 38px;
     margin-top: 0.75rem;
   }
   .footer-bottom {
@@ -1789,7 +1788,7 @@ button:focus-visible {
   }
 }
 
-/* ARCHIVED HAEL LOADER — e817fc0c6f1ceb2ec6aab574fa621431771c678b */
+/* HAEL LOADER */
 .opening-screen {
   position: fixed;
   inset: 0;
@@ -1807,21 +1806,62 @@ html[data-hael-loader-mode='skip'] .opening-screen {
 }
 html[data-hael-loader-mode='play'],
 html[data-hael-loader-mode='play'] body,
+html[data-hael-loader-mode='reduce'],
+html[data-hael-loader-mode='reduce'] body,
 html[data-hael-loader-active='true'],
 html[data-hael-loader-active='true'] body {
   overflow: hidden;
 }
-.opening-art {
-  display: block;
-  width: min(44vw, 16.75rem);
-  max-width: 18.75rem;
-  max-height: 100svh;
-  height: auto;
-  object-fit: contain;
-  object-position: center;
+.opening-mark-shell {
+  position: relative;
+  width: clamp(24rem, 46vw, 34rem);
+  max-width: 100vw;
+  aspect-ratio: 1500 / 1047;
   pointer-events: none;
   user-select: none;
-  background: transparent;
+}
+.opening-start-graphic {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+.opening-screen.is-ready .opening-start-graphic {
+  animation: opening-start-live 600ms cubic-bezier(0.22, 0.72, 0.2, 1)
+    forwards;
+}
+@keyframes opening-start-live {
+  0%,
+  20% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    opacity: 1;
+    transform: translate3d(0, -0.08rem, 0) scale(1.006, 0.994);
+  }
+  62% {
+    opacity: 1;
+    transform: translate3d(0, 0.06rem, 0) scale(0.996, 1.004);
+  }
+  80% {
+    opacity: 1;
+    transform: translate3d(0, -0.03rem, 0) scale(1.004, 0.997);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opening-screen.is-ready .opening-start-graphic {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 /* HOME HERO — fixed scene, drifting logo track, rising collection */
@@ -1913,21 +1953,32 @@ html[data-hael-loader-active='true'] body {
 }
 .hero-logo-track {
   display: flex;
+  align-items: center;
   width: max-content;
   height: 100%;
   animation: hero-logo-drift 34s linear infinite;
   will-change: transform;
 }
-.hero-logo-copy {
-  position: relative;
-  flex: 0 0 108vw;
-  width: 108vw;
-  height: 100svh;
+.hero-logo-sequence {
+  --hero-logo-height: clamp(20rem, 40vh, 25rem);
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: clamp(3.75rem, 8vw, 7.5rem);
+  padding-right: clamp(3.75rem, 8vw, 7.5rem);
 }
-.hero-logo-copy img {
-  object-fit: contain !important;
-  object-position: center 58% !important;
-  filter: grayscale(1) contrast(1.34) brightness(2.35);
+.hero-logo-item {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  height: var(--hero-logo-height);
+}
+.hero-logo-item img {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: var(--hero-logo-height);
+  object-fit: contain;
 }
 .hero-utility {
   position: absolute;
@@ -1982,7 +2033,9 @@ html[data-hael-loader-active='true'] body {
   z-index: 5;
   margin: 0;
   padding-top: clamp(2rem, 3vw, 3rem);
-  background: #171717;
+  background: rgba(23, 23, 23, 0.62);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 .home-collection .merch-head,
 .home-collection .home-product-grid {
@@ -2018,13 +2071,10 @@ html[data-hael-loader-active='true'] body {
     height: 100svh;
     min-height: 100svh;
   }
-  .hero-logo-copy {
-    flex-basis: 146vw;
-    width: 146vw;
-  }
-  .hero-logo-copy img {
-    object-fit: contain;
-    object-position: center 18%;
+  .hero-logo-sequence {
+    --hero-logo-height: clamp(10rem, 22.5vh, 11.25rem);
+    gap: 1.5rem;
+    padding-right: 1.5rem;
   }
   .hero-review-indicator {
     top: calc(var(--nav-h) + 0.8rem);
@@ -2050,6 +2100,9 @@ html[data-hael-loader-active='true'] body {
   }
   .home-collection {
     padding-top: 2rem;
+    background: rgba(23, 23, 23, 0.68);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 }
 

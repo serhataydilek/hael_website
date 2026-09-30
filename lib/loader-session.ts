@@ -1,24 +1,25 @@
 export function buildLoaderBootScript() {
   return (
     `try{var d=document.documentElement;` +
-    `var play=/(?:^|[?&])loader=1(?:&|$)/.test(location.search)||!window.matchMedia('(prefers-reduced-motion: reduce)').matches;` +
-    `d.dataset.haelLoaderMode=play?'play':'skip';` +
-    `if(play){d.dataset.haelLoaderActive='true'}else{d.removeAttribute('data-hael-loader-active')}` +
+    `var force=/(?:^|[?&])loader=1(?:&|$)/.test(location.search);` +
+    `var reduce=!force&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;` +
+    `d.dataset.haelLoaderMode=reduce?'reduce':'play';` +
+    `d.dataset.haelLoaderActive='true';` +
     `}catch{}`
   );
 }
 
-export function decideLoaderMode(): 'play' | 'skip' {
+export function decideLoaderMode(): 'play' | 'reduce' | 'skip' {
   if (typeof document !== 'undefined') {
     const mode = document.documentElement.dataset.haelLoaderMode;
-    if (mode === 'play' || mode === 'skip') return mode;
+    if (mode === 'play' || mode === 'reduce' || mode === 'skip') return mode;
   }
   if (typeof window === 'undefined') return 'play';
   try {
     if (new URLSearchParams(window.location.search).get('loader') === '1')
       return 'play';
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-      return 'skip';
+      return 'reduce';
   } catch {
     return 'play';
   }

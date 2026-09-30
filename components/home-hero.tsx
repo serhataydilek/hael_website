@@ -13,6 +13,14 @@ const SCENES = [
 ] as const;
 
 const SCENE_MS = 3600;
+const HERO_LOGOS = [
+  ['wordmark', '/brand/hael-wordmark.png', 632, 634],
+  ['primary', '/brand/hael-primary.png', 624, 719],
+  ['wordmark', '/brand/hael-wordmark.png', 632, 634],
+  ['primary', '/brand/hael-primary.png', 624, 719],
+  ['wordmark', '/brand/hael-wordmark.png', 632, 634],
+  ['primary', '/brand/hael-primary.png', 624, 719],
+] as const;
 
 export function HomeHero() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -180,27 +188,25 @@ export function HomeHero() {
         </div>
         <div className="hero-logo-viewport" aria-hidden="true">
           <div className="hero-logo-track">
-            <div className="hero-logo-copy">
-              <Image
-                src="/brand/hael-monolith-wordmark-soft.png"
-                alt=""
-                fill
-                priority
-                sizes="110vw"
-                unoptimized
-                style={{ objectFit: 'contain', objectPosition: 'center 58%' }}
-              />
-            </div>
-            <div className="hero-logo-copy">
-              <Image
-                src="/brand/hael-monolith-wordmark-soft.png"
-                alt=""
-                fill
-                sizes="110vw"
-                unoptimized
-                style={{ objectFit: 'contain', objectPosition: 'center 58%' }}
-              />
-            </div>
+            {[0, 1].map((sequence) => (
+              <div className="hero-logo-sequence" key={sequence}>
+                {HERO_LOGOS.map(([variant, src, width, height], index) => (
+                  <div
+                    className={`hero-logo-item hero-logo-item-${variant}`}
+                    key={`${sequence}-${index}`}
+                  >
+                    <Image
+                      src={src}
+                      alt=""
+                      width={width}
+                      height={height}
+                      priority={sequence === 0}
+                      unoptimized
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
         <div className="hero-utility">
